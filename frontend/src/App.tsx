@@ -12,7 +12,8 @@ import { TransparencyPage } from './pages/TransparencyPage';
 import { CommunityPage } from './pages/CommunityPage';
 import { VerifyReceiptPage } from './pages/VerifyReceiptPage';
 import { DashboardPage } from './pages/DashboardPage';
-import { LoginPage } from './pages/LoginPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
+import { DonorHistoryPage } from './pages/DonorHistoryPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,7 +40,9 @@ export const App: React.FC = () => {
                 <Route path="/community" element={<CommunityPage />} />
                 <Route path="/verify" element={<VerifyReceiptPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/login" element={<LoginPage />} />
+                <Route path="/admin" element={<AdminLoginPage />} />
+                <Route path="/login" element={<AdminLoginPage />} />
+                <Route path="/donor/history" element={<DonorHistoryPage />} />
               </Routes>
             </main>
             <Footer />

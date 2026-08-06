@@ -98,3 +98,25 @@ export interface OfflineCashRecord {
   recordedAt: string;
   synced: boolean;
 }
+
+export interface RazorpayOrderResponse {
+  orderId: string;
+  amount: number;
+  currency: string;
+  receipt: string;
+  status: string;
+  keyId: string;
+}
+
+export interface RazorpayPaymentSuccessResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+

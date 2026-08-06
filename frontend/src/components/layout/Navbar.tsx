@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, ShieldCheck, Users, Search, UserCheck, LogOut, Menu, X } from 'lucide-react';
+import { Heart, ShieldCheck, Users, Search, UserCheck, LogOut, Menu, X, Lock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
@@ -10,7 +10,7 @@ export const Navbar: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/admin');
   };
 
   return (
@@ -35,7 +35,7 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Public Desktop Navigation Links (Zero Login Required) */}
           <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
             <Link to="/ganesh" className="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-extrabold text-orange-400 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 transition">
               <span>🕉️ Ganesh Chaturthi</span>
@@ -61,7 +61,7 @@ export const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* User Auth Buttons */}
+          {/* Committee Organizer Portal Links */}
           <div className="hidden md:flex items-center space-x-3">
             {user ? (
               <div className="flex items-center space-x-3">
@@ -70,7 +70,7 @@ export const Navbar: React.FC = () => {
                   className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-extrabold bg-slate-800 border border-slate-700 text-slate-200 hover:border-orange-500/50 hover:text-white transition"
                 >
                   <UserCheck className="w-4 h-4 text-orange-400" />
-                  <span>Dashboard ({user.role})</span>
+                  <span>Admin Dashboard ({user.role})</span>
                 </Link>
 
                 <button
@@ -84,16 +84,11 @@ export const Navbar: React.FC = () => {
             ) : (
               <div className="flex items-center space-x-3">
                 <Link
-                  to="/login"
-                  className="px-4 py-2.5 text-xs font-extrabold text-slate-300 hover:text-white transition"
+                  to="/admin"
+                  className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition"
                 >
-                  Log In
-                </Link>
-                <Link
-                  to="/login"
-                  className="px-5 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25 hover:brightness-110 active:scale-95 transition"
-                >
-                  Donate Now
+                  <Lock className="w-3.5 h-3.5 text-orange-400" />
+                  <span>Organizer Admin</span>
                 </Link>
               </div>
             )}
@@ -150,23 +145,13 @@ export const Navbar: React.FC = () => {
           >
             Verify Receipt
           </Link>
-          {user ? (
-            <Link
-              to="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-center py-3 rounded-xl bg-orange-600 font-bold text-white text-xs"
-            >
-              Dashboard ({user.role})
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block w-full text-center py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 font-bold text-white text-xs"
-            >
-              Log In / Register
-            </Link>
-          )}
+          <Link
+            to="/admin"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block w-full text-center py-3 rounded-xl bg-slate-800 font-bold text-slate-300 text-xs border border-slate-700"
+          >
+            Organizer Admin Portal (/admin)
+          </Link>
         </div>
       )}
     </nav>
