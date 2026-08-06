@@ -14,7 +14,7 @@ public class DonationResponse {
     private String donorPhone;
     private String donorAddress;
     private BigDecimal amount;
-    private Festival.PurposeCategory purpose;
+    private Festival.FestivalType purpose;
     private Donation.PaymentType paymentType;
     private Donation.PaymentStatus paymentStatus;
     private String transactionId;
@@ -45,8 +45,8 @@ public class DonationResponse {
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
 
-    public Festival.PurposeCategory getPurpose() { return purpose; }
-    public void setPurpose(Festival.PurposeCategory purpose) { this.purpose = purpose; }
+    public Festival.FestivalType getPurpose() { return purpose; }
+    public void setPurpose(Festival.FestivalType purpose) { this.purpose = purpose; }
 
     public Donation.PaymentType getPaymentType() { return paymentType; }
     public void setPaymentType(Donation.PaymentType paymentType) { this.paymentType = paymentType; }

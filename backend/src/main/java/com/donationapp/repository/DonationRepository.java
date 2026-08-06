@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DonationRepository extends JpaRepository<Donation, Long> {
@@ -15,6 +16,9 @@ public interface DonationRepository extends JpaRepository<Donation, Long> {
     List<Donation> findByDonorId(Long donorId);
     List<Donation> findByPaymentStatus(Donation.PaymentStatus status);
     List<Donation> findByPaymentType(Donation.PaymentType paymentType);
+    Optional<Donation> findByRazorpayOrderId(String razorpayOrderId);
+    Optional<Donation> findByRazorpayPaymentId(String razorpayPaymentId);
+    Optional<Donation> findByTransactionId(String transactionId);
     
     @Query("SELECT SUM(d.amount) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED'")
     BigDecimal sumTotalCollectionByFestivalId(@Param("festivalId") Long festivalId);

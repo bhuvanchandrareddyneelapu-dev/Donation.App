@@ -24,9 +24,9 @@ public class FestivalController {
         return ResponseEntity.ok(festivalService.getAllFestivals());
     }
 
-    @GetMapping("/category/{category}")
-    public ResponseEntity<List<Festival>> getFestivalsByCategory(@PathVariable Festival.PurposeCategory category) {
-        return ResponseEntity.ok(festivalService.getFestivalsByCategory(category));
+    @GetMapping({"/category/{festivalType}", "/type/{festivalType}"})
+    public ResponseEntity<List<Festival>> getFestivalsByFestivalType(@PathVariable Festival.FestivalType festivalType) {
+        return ResponseEntity.ok(festivalService.getFestivalsByFestivalType(festivalType));
     }
 
     @GetMapping("/{id}")

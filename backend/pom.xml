@@ -85,6 +85,18 @@
 			<version>${springdoc.version}</version>
 		</dependency>
 
+		<!-- Razorpay Payment Gateway SDK -->
+		<dependency>
+			<groupId>com.razorpay</groupId>
+			<artifactId>razorpay-java</artifactId>
+			<version>1.4.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20240303</version>
+		</dependency>
+
 		<!-- Test Starter -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

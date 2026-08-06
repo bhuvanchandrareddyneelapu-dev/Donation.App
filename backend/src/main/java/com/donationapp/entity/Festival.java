@@ -14,6 +14,15 @@ public class Festival {
         DASARA
     }
 
+    public String getReceiptPrefix() {
+        if (festivalType == FestivalType.DASARA) {
+            return "DAS";
+        } else if (festivalType == FestivalType.GANESH_CHATURTHI) {
+            return "GAN";
+        }
+        return "DON";
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

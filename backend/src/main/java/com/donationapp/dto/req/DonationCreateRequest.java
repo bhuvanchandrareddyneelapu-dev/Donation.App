@@ -26,7 +26,7 @@ public class DonationCreateRequest {
     @DecimalMin(value = "1.0", message = "Minimum donation amount is ₹1")
     private BigDecimal amount;
 
-    private Festival.PurposeCategory purpose = Festival.PurposeCategory.FESTIVAL;
+    private Festival.FestivalType purpose = Festival.FestivalType.GANESH_CHATURTHI;
 
     @NotNull
     private Donation.PaymentType paymentType = Donation.PaymentType.ONLINE;
@@ -52,8 +52,8 @@ public class DonationCreateRequest {
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
 
-    public Festival.PurposeCategory getPurpose() { return purpose; }
-    public void setPurpose(Festival.PurposeCategory purpose) { this.purpose = purpose; }
+    public Festival.FestivalType getPurpose() { return purpose; }
+    public void setPurpose(Festival.FestivalType purpose) { this.purpose = purpose; }
 
     public Donation.PaymentType getPaymentType() { return paymentType; }
     public void setPaymentType(Donation.PaymentType paymentType) { this.paymentType = paymentType; }

@@ -20,8 +20,8 @@ public class FestivalService {
         return festivalRepository.findByActiveTrue();
     }
 
-    public List<Festival> getFestivalsByCategory(Festival.PurposeCategory category) {
-        return festivalRepository.findByCategory(category);
+    public List<Festival> getFestivalsByFestivalType(Festival.FestivalType festivalType) {
+        return festivalRepository.findByFestivalType(festivalType);
     }
 
     public Optional<Festival> getFestivalById(Long id) {
@@ -36,7 +36,6 @@ public class FestivalService {
     public Festival updateFestival(Long id, Festival updatedDetails) {
         return festivalRepository.findById(id).map(festival -> {
             festival.setName(updatedDetails.getName());
-            festival.setCategory(updatedDetails.getCategory());
             festival.setFestivalType(updatedDetails.getFestivalType());
             festival.setBannerUrl(updatedDetails.getBannerUrl());
             festival.setIdolImageUrl(updatedDetails.getIdolImageUrl());

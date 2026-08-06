@@ -41,6 +41,7 @@ public class Expense {
 
     private String vendorName;
     private String paidBy;
+    private String approvedBy;
 
     @Column(nullable = false)
     private LocalDate paymentDate;
@@ -75,6 +76,9 @@ public class Expense {
 
     public String getPaidBy() { return paidBy; }
     public void setPaidBy(String paidBy) { this.paidBy = paidBy; }
+
+    public String getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
 
     public LocalDate getPaymentDate() { return paymentDate; }
     public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }

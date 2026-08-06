@@ -8,7 +8,7 @@ import java.util.List;
 
 @Repository
 public interface FestivalRepository extends JpaRepository<Festival, Long> {
-    List<Festival> findByCategory(Festival.PurposeCategory category);
+    List<Festival> findByFestivalType(Festival.FestivalType festivalType);
     List<Festival> findByActiveTrue();
     List<Festival> findByOrganizationId(Long organizationId);
 }

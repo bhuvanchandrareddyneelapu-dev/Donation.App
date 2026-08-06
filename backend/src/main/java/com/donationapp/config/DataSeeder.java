@@ -119,6 +119,7 @@ public class DataSeeder implements CommandLineRunner {
         d1.setDonorPhone("+91 9876543214");
         d1.setDonorAddress("Jayanagar 4th Block, Bengaluru");
         d1.setAmount(new BigDecimal("25000.00"));
+        d1.setPurpose(ganesh.getFestivalType());
         d1.setPaymentType(Donation.PaymentType.ONLINE);
         d1.setPaymentStatus(Donation.PaymentStatus.COMPLETED);
         d1.setTransactionId("PAY_RAZORPAY_882910");
@@ -133,6 +134,7 @@ public class DataSeeder implements CommandLineRunner {
         d2.setDonorPhone("+91 9443218765");
         d2.setDonorAddress("Dadar West, Mumbai");
         d2.setAmount(new BigDecimal("11000.00"));
+        d2.setPurpose(ganesh.getFestivalType());
         d2.setPaymentType(Donation.PaymentType.CASH);
         d2.setPaymentStatus(Donation.PaymentStatus.VERIFIED);
         d2.setTransactionId("CASH_VOL_44910");

@@ -50,7 +50,7 @@ public class Donation {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Festival.PurposeCategory purpose;
+    private Festival.FestivalType purpose;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -61,6 +61,14 @@ public class Donation {
     private PaymentStatus paymentStatus;
 
     private String transactionId;
+
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+    private String razorpaySignature;
+    private String currency = "INR";
+
+    @Column(columnDefinition = "TEXT")
+    private String gatewayResponse;
 
     private boolean isAnonymous = false;
 
@@ -99,8 +107,8 @@ public class Donation {
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
 
-    public Festival.PurposeCategory getPurpose() { return purpose; }
-    public void setPurpose(Festival.PurposeCategory purpose) { this.purpose = purpose; }
+    public Festival.FestivalType getPurpose() { return purpose; }
+    public void setPurpose(Festival.FestivalType purpose) { this.purpose = purpose; }
 
     public PaymentType getPaymentType() { return paymentType; }
     public void setPaymentType(PaymentType paymentType) { this.paymentType = paymentType; }
@@ -110,6 +118,21 @@ public class Donation {
 
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public String getRazorpayOrderId() { return razorpayOrderId; }
+    public void setRazorpayOrderId(String razorpayOrderId) { this.razorpayOrderId = razorpayOrderId; }
+
+    public String getRazorpayPaymentId() { return razorpayPaymentId; }
+    public void setRazorpayPaymentId(String razorpayPaymentId) { this.razorpayPaymentId = razorpayPaymentId; }
+
+    public String getRazorpaySignature() { return razorpaySignature; }
+    public void setRazorpaySignature(String razorpaySignature) { this.razorpaySignature = razorpaySignature; }
+
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
+
+    public String getGatewayResponse() { return gatewayResponse; }
+    public void setGatewayResponse(String gatewayResponse) { this.gatewayResponse = gatewayResponse; }
 
     public boolean isAnonymous() { return isAnonymous; }
     public void setAnonymous(boolean anonymous) { isAnonymous = anonymous; }
