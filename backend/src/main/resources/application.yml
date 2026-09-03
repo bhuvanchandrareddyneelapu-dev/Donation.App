@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: donationapp-backend
+  main:
+    web-application-type: servlet
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/donationapp}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
