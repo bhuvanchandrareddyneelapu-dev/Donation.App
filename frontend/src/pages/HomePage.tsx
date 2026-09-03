@@ -54,7 +54,7 @@ export const HomePage: React.FC = () => {
           </h1>
 
           <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
-            Zero-friction digital donations with instant cryptographic WhatsApp PDF receipts, volunteer cash recording, and 100% itemized public expense transparency.
+            Zero-friction digital donations with instant cryptographic Email PDF receipts, volunteer cash recording, and 100% itemized public expense transparency.
           </p>
 
           {/* Quick Action Links */}
@@ -72,7 +72,7 @@ export const HomePage: React.FC = () => {
               className="px-6 py-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold text-sm flex items-center space-x-2 transition"
             >
               <Smartphone className="w-4 h-4 text-amber-400" />
-              <span>Donor History (WhatsApp OTP)</span>
+              <span>Donor History (Phone / OTP)</span>
             </Link>
           </div>
         </div>

@@ -84,9 +84,8 @@ public class DonationService {
         receipt.setPdfUrl("/api/v1/receipts/" + receiptNo + "/pdf");
         receiptRepository.save(receipt);
 
-        // Trigger WhatsApp and Email Notifications
-        notificationService.sendDonationConfirmationWhatsApp(donation, receipt);
-        notificationService.sendEmailReceipt(donation, receipt);
+        // Trigger Email Notification
+        notificationService.sendDonationConfirmation(donation, receipt);
 
         return mapToResponse(donation, receipt, null);
     }
@@ -128,9 +127,8 @@ public class DonationService {
         receipt.setPdfUrl("/api/v1/receipts/" + receiptNo + "/pdf");
         receiptRepository.save(receipt);
 
-        // Trigger WhatsApp and Email Notification Automation
-        notificationService.sendDonationConfirmationWhatsApp(donation, receipt);
-        notificationService.sendEmailReceipt(donation, receipt);
+        // Trigger Email Notification Automation
+        notificationService.sendDonationConfirmation(donation, receipt);
 
         return mapToResponse(donation, receipt, null);
     }
@@ -174,8 +172,8 @@ public class DonationService {
         receipt.setPdfUrl("/api/v1/receipts/" + receiptNo + "/pdf");
         receiptRepository.save(receipt);
 
-        // Trigger WhatsApp Notification
-        notificationService.sendDonationConfirmationWhatsApp(donation, receipt);
+        // Trigger Email Notification
+        notificationService.sendDonationConfirmation(donation, receipt);
 
         return mapToResponse(donation, receipt, volunteer.getName());
     }

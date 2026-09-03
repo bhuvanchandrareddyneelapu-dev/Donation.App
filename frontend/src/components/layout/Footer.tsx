@@ -44,7 +44,7 @@ export const Footer: React.FC = () => {
               <li><a href="/verify" className="hover:text-orange-400 transition">QR Code Receipt Verification</a></li>
               <li><a href="/community" className="hover:text-orange-400 transition">Community & Live Feeds</a></li>
               <li><a href="/dashboard" className="hover:text-orange-400 transition">Volunteer Cash Syncing</a></li>
-              <li><a href="/verify" className="hover:text-orange-400 transition">WhatsApp Automation Receipts</a></li>
+              <li><a href="/verify" className="hover:text-orange-400 transition">Email & PDF Receipts</a></li>
             </ul>
           </div>
 

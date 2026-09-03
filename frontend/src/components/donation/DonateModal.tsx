@@ -214,7 +214,7 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">WhatsApp Number *</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Phone Number *</label>
                     <input
                       type="tel"
                       required
@@ -347,7 +347,7 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                 <p className="text-xs text-slate-400 mt-1">Thank you for your generous contribution towards {festival.name}</p>
               </div>
 
-              {/* Receipt & WhatsApp Summary */}
+              {/* Receipt & Email Summary */}
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2 text-xs">
                 <div className="flex justify-between border-b border-slate-800/80 pb-2">
                   <span className="text-slate-400">Receipt No:</span>
@@ -359,7 +359,7 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                 </div>
                 <div className="pt-1 text-[11px] text-emerald-400 space-y-1">
                   <div className="flex items-center gap-1 font-bold">
-                    <Send className="w-3 h-3" /> WhatsApp Receipt Message Sent to {donorPhone || 'WhatsApp'}
+                    <Send className="w-3 h-3" /> Email Receipt & PDF Attachment Dispatched
                   </div>
                   <div className="flex items-center gap-1 font-semibold text-amber-300">
                     <Sparkles className="w-3 h-3" /> Community Invitation Link Dispatched

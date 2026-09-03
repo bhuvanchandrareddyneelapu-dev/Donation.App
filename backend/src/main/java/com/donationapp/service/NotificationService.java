@@ -7,22 +7,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationService {
 
-    private final WhatsAppService whatsAppService;
+    private final EmailService emailService;
 
-    public NotificationService(WhatsAppService whatsAppService) {
-        this.whatsAppService = whatsAppService;
+    public NotificationService(EmailService emailService) {
+        this.emailService = emailService;
+    }
+
+    public void sendDonationConfirmation(Donation donation, Receipt receipt) {
+        emailService.sendDonationReceiptEmail(donation, receipt);
     }
 
     public void sendDonationConfirmationWhatsApp(Donation donation, Receipt receipt) {
-        whatsAppService.sendDonationReceiptWhatsApp(donation, receipt);
+        emailService.sendDonationReceiptEmail(donation, receipt);
     }
 
     public void sendEmailReceipt(Donation donation, Receipt receipt) {
-        System.out.println("==================================================");
-        System.out.println("✉️ [EMAIL NOTIFICATION SERVICE DISPATCH]");
-        System.out.println("Recipient: " + (donation.getDonor() != null ? donation.getDonor().getEmail() : donation.getDonorName() + "@donor.org"));
-        System.out.println("Subject: Official Donation Receipt - " + receipt.getReceiptNumber());
-        System.out.println("Attached PDF: " + receipt.getReceiptNumber() + ".pdf");
-        System.out.println("==================================================");
+        emailService.sendDonationReceiptEmail(donation, receipt);
     }
 }

@@ -73,14 +73,14 @@ export const DonorHistoryPage: React.FC = () => {
             <Smartphone className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-extrabold text-white">Donor History Portal</h2>
-          <p className="text-xs text-slate-400">Access all your past receipts & contributions via WhatsApp OTP (No account required)</p>
+          <p className="text-xs text-slate-400">Access all your past receipts & contributions via Mobile OTP (No account required)</p>
         </div>
 
         {/* Step 1: Phone Entry */}
         {step === 'PHONE' && (
           <form onSubmit={handleSendOtp} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">WhatsApp Phone Number *</label>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Phone Number *</label>
               <div className="relative">
                 <Smartphone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -99,7 +99,7 @@ export const DonorHistoryPage: React.FC = () => {
               disabled={loading}
               className="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-sm shadow-lg shadow-orange-600/30 flex items-center justify-center space-x-2 transition"
             >
-              <span>{loading ? 'Sending OTP...' : 'Send WhatsApp OTP'}</span>
+              <span>{loading ? 'Sending OTP...' : 'Send OTP'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

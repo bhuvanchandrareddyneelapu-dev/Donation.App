@@ -48,11 +48,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/community/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/receipts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/analytics/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().permitAll() // Permissive for local dev demo convenience, guarded by @PreAuthorize where needed
-            )
-            .headers(headers -> headers.frameOptions(frame -> frame.disable())); // Allow H2 console frames
+            );
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

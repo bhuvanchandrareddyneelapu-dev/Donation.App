@@ -35,7 +35,7 @@ public class DonorOtpService {
         Map<String, Object> resp = new HashMap<>();
         resp.put("success", true);
         resp.put("phone", phone);
-        resp.put("message", "OTP sent via WhatsApp to " + phone + ". (Demo OTP: 1234)");
+        resp.put("message", "OTP sent to " + phone + ". (Demo OTP: 1234)");
         return resp;
     }
 
