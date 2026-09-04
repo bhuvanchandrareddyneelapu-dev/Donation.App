@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, ArrowLeft, ShieldCheck, QrCode, Smartphone, CreditCard, Sparkles, AlertCircle, Lock } from 'lucide-react';
+import { Heart, ArrowLeft, ShieldCheck, Smartphone, CreditCard, AlertCircle, Lock, CheckCircle2 } from 'lucide-react';
 import { FestivalConfig } from '../../config/festivalConfig';
 import api from '../../services/api';
 import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '../../services/paymentService';
@@ -53,7 +53,7 @@ export const DonationStep: React.FC<DonationStepProps> = ({
       // Step 2: Open Razorpay checkout modal
       await openRazorpayCheckout({
         orderData,
-        festivalName: `${config.communityName} ${config.festivalName}`,
+        festivalName: config.festivalName,
         donorName: nameToUse,
         donorPhone: phoneToUse,
         onSuccess: async (razorpayResponse) => {
@@ -109,7 +109,7 @@ export const DonationStep: React.FC<DonationStepProps> = ({
           qrCodeHash: 'HASH_UNI_DEMO_' + Date.now(),
           amount: finalAmount,
           donorName: nameToUse,
-          festivalName: `${config.communityName} ${config.festivalName}`,
+          festivalName: config.festivalName,
           createdAt: new Date().toISOString(),
         });
       } finally {
@@ -141,6 +141,23 @@ export const DonationStep: React.FC<DonationStepProps> = ({
           <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
             "{config.donationMessage}"
           </p>
+        </div>
+
+        {/* Your Contribution Supports - Explicit List */}
+        <div className="p-5 rounded-2xl bg-slate-950/90 border border-amber-500/20 space-y-3">
+          <h3 className="text-xs font-black uppercase text-amber-400 tracking-wider flex items-center space-x-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Your contribution supports:</span>
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-200">
+            {config.donationPurposes.map((purpose, idx) => (
+              <div key={idx} className="flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="font-medium">{purpose}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Error Notification */}

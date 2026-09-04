@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, ArrowLeft, Sparkles, Flame, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, Flame, Calendar, Clock, MapPin } from 'lucide-react';
 import { FestivalConfig } from '../../config/festivalConfig';
 
 interface GaneshDarshanProps {
@@ -23,7 +23,7 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
         {/* Badge */}
         <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 font-extrabold text-xs">
           <Sparkles className="w-4 h-4 text-amber-400" />
-          <span>Ganesh Darshan & Festival Introduction</span>
+          <span>Ganesh Darshan</span>
         </div>
 
         {/* Main Heading */}
@@ -40,26 +40,39 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
           
-          <div className="absolute bottom-4 left-4 right-4 text-left p-4 rounded-2xl bg-slate-950/80 backdrop-blur-md border border-slate-800">
-            <div className="flex items-center space-x-2 text-amber-400 text-xs font-bold mb-1">
+          <div className="absolute bottom-4 left-4 right-4 text-left p-4 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-slate-800 space-y-1">
+            <div className="flex items-center space-x-2 text-amber-400 text-xs font-bold">
               <Flame className="w-4 h-4 text-orange-500" />
               <span>{config.communityName} Main Mandap</span>
             </div>
             <p className="text-xs text-slate-300 font-medium">
-              Location: {config.venue}
+              Venue: {config.sthapana.location}
             </p>
           </div>
         </div>
 
-        {/* Brief Festival Description */}
-        <div className="max-w-xl mx-auto space-y-3">
+        {/* Brief Content & Event Card */}
+        <div className="max-w-xl mx-auto space-y-4">
           <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-medium">
             "{config.darshanMessage}"
           </p>
 
-          <div className="inline-flex items-center space-x-2 text-xs text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-xl">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Organized by {config.organizer}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-medium">
+            <div className="flex flex-col items-center">
+              <Calendar className="w-4 h-4 text-orange-400 mb-1" />
+              <span className="text-[10px] text-slate-400 font-bold uppercase">Ganesh Sthapana</span>
+              <span className="font-bold text-white mt-0.5">{config.sthapana.date}</span>
+            </div>
+            <div className="flex flex-col items-center border-t sm:border-t-0 sm:border-l border-slate-800 pt-2 sm:pt-0">
+              <Clock className="w-4 h-4 text-amber-400 mb-1" />
+              <span className="text-[10px] text-slate-400 font-bold uppercase">Time</span>
+              <span className="font-mono font-bold text-orange-400 mt-0.5">{config.sthapana.time}</span>
+            </div>
+            <div className="flex flex-col items-center border-t sm:border-t-0 sm:border-l border-slate-800 pt-2 sm:pt-0">
+              <MapPin className="w-4 h-4 text-amber-400 mb-1" />
+              <span className="text-[10px] text-slate-400 font-bold uppercase">Venue</span>
+              <span className="font-bold text-white mt-0.5">{config.sthapana.location}</span>
+            </div>
           </div>
         </div>
 
@@ -79,7 +92,7 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
             onClick={onNext}
             className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 active:scale-95 text-white font-extrabold text-sm shadow-lg shadow-orange-500/30 flex items-center space-x-2 transition"
           >
-            <span>Next: Notifications</span>
+            <span>Continue</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

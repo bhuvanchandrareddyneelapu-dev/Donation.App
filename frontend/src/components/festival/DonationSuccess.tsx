@@ -38,7 +38,7 @@ export const DonationSuccess: React.FC<DonationSuccessProps> = ({
             Donation Successful! 🙏
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-            Thank you for supporting the {config.communityName} {config.festivalName} celebration.
+            Thank you for supporting {config.festivalName}.
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export const DonationSuccess: React.FC<DonationSuccessProps> = ({
           <div className="pt-1 text-[11px] text-emerald-400 space-y-1.5 font-medium">
             <div className="flex items-center space-x-1.5">
               <Send className="w-3.5 h-3.5" />
-              <span>Email Receipt & Cryptographic PDF Attachment Dispatched</span>
+              <span>Your PDF receipt has been sent to your email.</span>
             </div>
             <div className="flex items-center space-x-1.5 text-amber-300">
               <Sparkles className="w-3.5 h-3.5" />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, ArrowRight, ArrowLeft, Clock, MapPin, Sparkles, Flower2, Flame, Utensils, Music, Waves, Megaphone } from 'lucide-react';
+import { Calendar, ArrowRight, ArrowLeft, Clock, MapPin, Sparkles, Flower2, Flame, Utensils, Music, Waves, Megaphone, Info } from 'lucide-react';
 import { FestivalConfig, FestivalUpdateCategory } from '../../config/festivalConfig';
 
 interface FestivalUpdatesProps {
@@ -53,7 +53,7 @@ export const FestivalUpdates: React.FC<FestivalUpdatesProps> = ({
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
-            Explore daily pujas, aarti schedules, mahaprasadam distribution, and cultural activities.
+            Explore daily pujas, aarti schedules, mahaprasadam distribution, cultural activities, and visarjan details.
           </p>
         </div>
 
@@ -99,6 +99,28 @@ export const FestivalUpdates: React.FC<FestivalUpdatesProps> = ({
               </span>
             </div>
 
+            {/* Tab-Specific Custom Content Summary */}
+            {selectedCategory === 'prasad' && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-300 flex items-center space-x-2">
+                <Utensils className="w-4 h-4 text-orange-400 shrink-0" />
+                <span>Mahaprasad will be available daily.</span>
+              </div>
+            )}
+
+            {selectedCategory === 'cultural' && (
+              <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs font-bold text-sky-300 flex items-center space-x-2">
+                <Music className="w-4 h-4 text-sky-400 shrink-0" />
+                <span>Five days of community and cultural activities are planned.</span>
+              </div>
+            )}
+
+            {selectedCategory === 'visarjan' && (
+              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs font-bold text-blue-300 flex items-center space-x-2">
+                <Info className="w-4 h-4 text-blue-400 shrink-0" />
+                <span>{config.visarjan.status}</span>
+              </div>
+            )}
+
             {/* Schedule Items List */}
             <div className="space-y-3.5">
               {activeCategoryData.items.map((item, idx) => (
@@ -114,7 +136,7 @@ export const FestivalUpdates: React.FC<FestivalUpdatesProps> = ({
                       </span>
                       <h4 className="font-extrabold text-white text-sm">{item.title}</h4>
                     </div>
-                    <p className="text-xs text-slate-400 pl-1">{item.details}</p>
+                    <p className="text-xs text-slate-300 pl-1 font-medium">{item.details}</p>
                   </div>
 
                   {item.location && (
@@ -129,7 +151,7 @@ export const FestivalUpdates: React.FC<FestivalUpdatesProps> = ({
 
             {/* Configurable Placeholder Reminder */}
             <div className="text-center p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 italic">
-              ✨ {activeCategoryData.placeholderText} for {config.communityName}
+              ✨ {activeCategoryData.placeholderText}
             </div>
           </div>
         )}
