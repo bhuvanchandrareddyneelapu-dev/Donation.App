@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ShieldCheck, Heart, ArrowRight, Smartphone, Calendar } from 'lucide-react';
+import { Sparkles, ShieldCheck } from 'lucide-react';
 import { defaultFestivalConfig, FestivalConfig } from '../config/festivalConfig';
 import { FestivalStepIndicator } from '../components/festival/FestivalStepIndicator';
 import { GaneshWelcome } from '../components/festival/GaneshWelcome';
+import { FestivalDashboard } from '../components/festival/FestivalDashboard';
 import { GaneshDarshan } from '../components/festival/GaneshDarshan';
 import { FestivalNotifications } from '../components/festival/FestivalNotifications';
 import { FestivalUpdates } from '../components/festival/FestivalUpdates';
 import { DonationStep } from '../components/festival/DonationStep';
 import { DonationSuccess } from '../components/festival/DonationSuccess';
+import { NimajjanExperience } from '../components/festival/NimajjanExperience';
 import { DonorWall } from '../components/donation/DonorWall';
 
 export const HomePage: React.FC = () => {
   const [config] = useState<FestivalConfig>(defaultFestivalConfig);
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [maxVisitedStep, setMaxVisitedStep] = useState<number>(1);
+  const [maxVisitedStep, setMaxVisitedStep] = useState<number>(2);
   const [receiptData, setReceiptData] = useState<any>(null);
+  const [showNimajjanModal, setShowNimajjanModal] = useState<boolean>(false);
 
   const goToStep = (step: number) => {
     setCurrentStep(step);
@@ -23,6 +26,27 @@ export const HomePage: React.FC = () => {
       setMaxVisitedStep(step);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDashboardNavigate = (section: 'welcome' | 'darshan' | 'notifications' | 'updates' | 'donate' | 'visarjan') => {
+    switch (section) {
+      case 'welcome':
+        goToStep(1);
+        break;
+      case 'darshan':
+        goToStep(3);
+        break;
+      case 'notifications':
+        goToStep(4);
+        break;
+      case 'updates':
+      case 'visarjan':
+        goToStep(5);
+        break;
+      case 'donate':
+        goToStep(6);
+        break;
+    }
   };
 
   return (
@@ -37,26 +61,26 @@ export const HomePage: React.FC = () => {
         />
       </div>
 
-      {/* Main Multi-Step Onboarding Journey */}
+      {/* Main Multi-Step Onboarding & Dashboard Journey */}
       <div className="transition-all duration-500">
         {currentStep === 1 && (
           <GaneshWelcome
             config={config}
             onNext={() => goToStep(2)}
-            onJumpToDonation={() => goToStep(5)}
+            onJumpToDonation={() => goToStep(6)}
           />
         )}
 
         {currentStep === 2 && (
-          <GaneshDarshan
+          <FestivalDashboard
             config={config}
-            onNext={() => goToStep(3)}
-            onBack={() => goToStep(1)}
+            onNavigateTo={handleDashboardNavigate}
+            onOpenNimajjan={() => setShowNimajjanModal(true)}
           />
         )}
 
         {currentStep === 3 && (
-          <FestivalNotifications
+          <GaneshDarshan
             config={config}
             onNext={() => goToStep(4)}
             onBack={() => goToStep(2)}
@@ -64,7 +88,7 @@ export const HomePage: React.FC = () => {
         )}
 
         {currentStep === 4 && (
-          <FestivalUpdates
+          <FestivalNotifications
             config={config}
             onNext={() => goToStep(5)}
             onBack={() => goToStep(3)}
@@ -72,17 +96,25 @@ export const HomePage: React.FC = () => {
         )}
 
         {currentStep === 5 && (
-          <DonationStep
+          <FestivalUpdates
             config={config}
+            onNext={() => goToStep(6)}
             onBack={() => goToStep(4)}
-            onSuccess={(data) => {
-              setReceiptData(data);
-              goToStep(6);
-            }}
           />
         )}
 
         {currentStep === 6 && (
+          <DonationStep
+            config={config}
+            onBack={() => goToStep(5)}
+            onSuccess={(data) => {
+              setReceiptData(data);
+              goToStep(7);
+            }}
+          />
+        )}
+
+        {currentStep === 7 && (
           <DonationSuccess
             config={config}
             receiptData={receiptData}
@@ -90,6 +122,16 @@ export const HomePage: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Nimajjan Modal overlay if triggered from Dashboard */}
+      {showNimajjanModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl overflow-y-auto">
+          <NimajjanExperience
+            config={config}
+            onClose={() => setShowNimajjanModal(false)}
+          />
+        </div>
+      )}
 
       {/* Additional Festival Resources & Live Devotee Wall */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">

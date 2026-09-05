@@ -84,6 +84,7 @@ export interface FestivalConfig {
   venue: string;
   organizer: string;
   datesText: string;
+  sthapanaDateISO: string;
   idolImageUrl: string;
   mandapImageUrl: string;
   images: {
@@ -124,6 +125,7 @@ export const defaultFestivalConfig: FestivalConfig = {
   venue: 'Unicode Estates',
   organizer: 'Unicode Estates Cultural & Festival Committee',
   datesText: '14 September 2026',
+  sthapanaDateISO: '2026-09-14',
   idolImageUrl: '/assets/images/unicode-estates-ganesh-idol.png',
   mandapImageUrl: '/assets/images/unicode-estates-ganesh-idol.png',
   images: {
