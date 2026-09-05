@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, ArrowRight, ArrowLeft, Clock, MapPin, Sparkles, Flower2, Flame, Utensils, Music, Waves, Megaphone, Info } from 'lucide-react';
 import { FestivalConfig, FestivalUpdateCategory } from '../../config/festivalConfig';
+import { NimajjanExperience } from './NimajjanExperience';
 
 interface FestivalUpdatesProps {
   config: FestivalConfig;
@@ -14,6 +15,7 @@ export const FestivalUpdates: React.FC<FestivalUpdatesProps> = ({
   onBack,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>(config.updates[0]?.id || 'puja');
+  const [showNimajjanExperience, setShowNimajjanExperience] = useState<boolean>(false);
 
   const getCategoryIcon = (iconName: string) => {
     switch (iconName) {
@@ -33,6 +35,15 @@ export const FestivalUpdates: React.FC<FestivalUpdatesProps> = ({
         return <Sparkles className="w-4 h-4 text-amber-400" />;
     }
   };
+
+  if (showNimajjanExperience) {
+    return (
+      <NimajjanExperience
+        config={config}
+        onBack={() => setShowNimajjanExperience(false)}
+      />
+    );
+  }
 
   const activeCategoryData: FestivalUpdateCategory =
     config.updates.find((u) => u.id === selectedCategory) || config.updates[0];
@@ -115,9 +126,43 @@ export const FestivalUpdates: React.FC<FestivalUpdatesProps> = ({
             )}
 
             {selectedCategory === 'visarjan' && (
-              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs font-bold text-blue-300 flex items-center space-x-2">
-                <Info className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>{config.visarjan.status}</span>
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 text-amber-300 font-black text-sm">
+                      <span>🛕</span>
+                      <span>{config.nimajjan.title}</span>
+                    </div>
+                    <span className="text-[11px] font-mono text-orange-400 bg-orange-500/20 px-2.5 py-0.5 rounded-md font-bold">
+                      Start: {config.nimajjan.startingTime}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Starting Time</span>
+                      <span className="font-bold text-white">{config.nimajjan.startingTime}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Duration</span>
+                      <span className="font-bold text-white">{config.nimajjan.duration}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Route</span>
+                      <span className="font-bold text-white">{config.nimajjan.route}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowNimajjanExperience(true)}
+                      className="px-6 py-3 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white font-black text-xs shadow-lg shadow-orange-500/30 hover:brightness-110 active:scale-95 transition flex items-center space-x-2"
+                    >
+                      <span>View Nimajjan Chants →</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 

@@ -12,31 +12,31 @@ export const GaneshPage: React.FC = () => {
 
   const ganeshFestival: Festival = {
     id: 1,
-    name: 'Grand Ganesh Chaturthi Mahotsav 2026',
+    name: 'Unicode Estates Ganesh Chaturthi Celebrations 2026',
     festivalType: 'GANESH_CHATURTHI',
-    bannerUrl: 'https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=1600',
-    idolImageUrl: 'https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=1000',
-    description: 'Celebrating 92 years of divine grand Ganeshotsav with 24x7 Mahaprasadam, free medical camps, and community blood donation drives.',
-    venue: 'Lalbaug Ground, Parel, Mumbai, Maharashtra 400012',
-    organizer: 'Lalbaugcha Raja Executive Committee',
-    targetAmount: 5000000,
-    currentCollection: 3450000,
+    bannerUrl: '/assets/images/unicode-estates-ganesh-idol.png',
+    idolImageUrl: '/assets/images/unicode-estates-ganesh-idol.png',
+    description: 'Come together with our Unicode Estates community to celebrate Ganpati Bappa with devotion, joy, togetherness and new beginnings.',
+    venue: 'Unicode Estates',
+    organizer: 'Unicode Estates Cultural & Festival Committee',
+    targetAmount: 500000,
+    currentCollection: 345000,
     installationDate: '2026-09-14',
     immersionDate: '2026-09-24',
     active: true,
   };
 
   const schedule = [
-    { time: '06:00 AM', title: 'Grand Arrival & Prana Pratishtha Puja', desc: 'Vedic chantings by 21 priests' },
-    { time: '07:30 PM', title: 'Maha Aarti & Cultural Evening', desc: 'Live Bhajan performance by renowned artists' },
-    { time: '12:00 PM - 03:00 PM', title: 'Daily 24x7 Mahaprasadam Kitchen', desc: 'Serving 15,000 devotees daily' },
-    { time: 'Sep 24, 08:00 AM', title: 'Grand Visarjan Immersion Procession', desc: 'Girgaon Chowpatty Immersion Route' },
+    { time: '06:00 AM', title: 'Grand Arrival & Prana Pratishtha Puja', desc: 'Vedic chantings by priests' },
+    { time: '07:30 PM', title: 'Maha Aarti & Cultural Evening', desc: 'Community Bhajan performance' },
+    { time: '12:00 PM - 03:00 PM', title: 'Daily Mahaprasadam Kitchen', desc: 'Serving all community devotees' },
+    { time: 'Starting 05:00 PM', title: 'Ganesh Nimajjan Utsav Procession', desc: 'Unicode Estates Procession Route' },
   ];
 
   const galleryImages = [
-    { url: 'https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=800', title: 'Divine Ganesh Idol & Floral Mandap 2026' },
-    { url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=800', title: 'Grand Floral Mandap & Evening Lighting' },
-    { url: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?w=800', title: 'Devotees Performing Evening Maha Aarti' },
+    { url: '/assets/images/unicode-estates-ganesh-idol.png', title: 'Unicode Estates Ganesh Idol 2026' },
+    { url: '/assets/images/unicode-estates-ganesh-idol.png', title: 'Grand Mandap & Devotional Lighting' },
+    { url: '/assets/images/unicode-estates-ganesh-idol.png', title: 'Devotees Performing Evening Maha Aarti' },
   ];
 
   const volunteers = [

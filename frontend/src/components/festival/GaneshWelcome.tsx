@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Heart, ArrowRight, Flame, MapPin, Calendar, Clock } from 'lucide-react';
+import { Flame, Heart, ArrowRight, Calendar, MapPin, Clock } from 'lucide-react';
 import { FestivalConfig } from '../../config/festivalConfig';
 
 interface GaneshWelcomeProps {
@@ -13,10 +13,12 @@ export const GaneshWelcome: React.FC<GaneshWelcomeProps> = ({
   onNext,
   onJumpToDonation,
 }) => {
+  const ganeshImg = config.images?.ganeshIdol || config.idolImageUrl;
+
   return (
-    <div className="relative min-h-[calc(100vh-140px)] flex flex-col items-center justify-center py-12 px-4 overflow-hidden">
+    <div className="relative min-h-[calc(100vh-140px)] flex flex-col items-center justify-center py-8 px-4 overflow-hidden">
       
-      {/* Background Decorative Lighting & Rangoli Glow */}
+      {/* Background Decorative Lighting & Glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-tr from-orange-600/20 via-amber-500/20 to-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Hero Card Container */}
@@ -25,7 +27,7 @@ export const GaneshWelcome: React.FC<GaneshWelcomeProps> = ({
         {/* Festive Badge */}
         <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-orange-500/15 via-amber-500/20 to-orange-500/15 border border-orange-500/30 text-amber-300 text-xs font-black uppercase tracking-widest shadow-md backdrop-blur-md">
           <Flame className="w-4 h-4 text-orange-400 animate-pulse" />
-          <span>🌺 {config.communityName} Festival Experience</span>
+          <span>Ganpati Bappa Morya! 🙏</span>
           <Flame className="w-4 h-4 text-orange-400 animate-pulse" />
         </div>
 
@@ -34,31 +36,31 @@ export const GaneshWelcome: React.FC<GaneshWelcomeProps> = ({
           <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
             Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400">{config.communityName}</span>
           </h1>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-amber-400/90 tracking-wide">
+          <h2 className="text-xl sm:text-3xl font-extrabold text-amber-400/90 tracking-wide">
             {config.festivalName}
           </h2>
         </div>
 
-        {/* Ganesh Idol Visual Frame */}
-        <div className="relative max-w-xs sm:max-w-sm mx-auto group">
+        {/* Ganesh Idol Visual Frame - Responsive, No Cropping */}
+        <div className="relative max-w-xs sm:max-w-md mx-auto group">
           <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-500 rounded-3xl blur opacity-40 group-hover:opacity-75 transition duration-500" />
-          <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border-2 border-amber-400/40 shadow-2xl bg-slate-950">
+          <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border-2 border-amber-400/40 shadow-2xl bg-slate-950 flex items-center justify-center">
             <img
-              src={config.idolImageUrl}
-              alt="Lord Ganesha Idol"
+              src={ganeshImg}
+              alt="Ganesh idol of Unicode Estates Ganesh Chaturthi Celebrations 2026"
               className="w-full h-full object-cover object-center group-hover:scale-105 transition duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
             <div className="absolute bottom-3 left-0 right-0 text-center">
-              <span className="px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-[11px] font-extrabold text-amber-300 border border-amber-500/30">
+              <span className="px-3.5 py-1 rounded-full bg-slate-950/85 backdrop-blur-md text-xs font-extrabold text-amber-300 border border-amber-500/30">
                 🕉️ Shree Ganeshay Namah
               </span>
             </div>
           </div>
         </div>
 
-        {/* Warm Devotional Message */}
-        <p className="text-sm sm:text-base text-slate-200 max-w-2xl mx-auto leading-relaxed font-medium">
+        {/* Devotional Tagline */}
+        <p className="text-base sm:text-lg text-slate-200 max-w-xl mx-auto leading-relaxed font-semibold">
           "{config.welcomeMessage}"
         </p>
 
@@ -77,8 +79,8 @@ export const GaneshWelcome: React.FC<GaneshWelcomeProps> = ({
           <div className="flex items-center space-x-2 text-slate-200">
             <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Location</span>
-              <span className="font-extrabold text-white">At {config.sthapana.location}</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold block">Venue</span>
+              <span className="font-extrabold text-white">{config.sthapana.location}</span>
             </div>
           </div>
 

@@ -13,6 +13,8 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
   onNext,
   onBack,
 }) => {
+  const ganeshImg = config.images?.ganeshIdol || config.idolImageUrl;
+
   return (
     <div className="min-h-[calc(100vh-140px)] flex flex-col items-center justify-center py-8 px-4">
       <div className="max-w-3xl w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8 text-center relative overflow-hidden">
@@ -20,10 +22,10 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
         {/* Decorative Top Banner Accent */}
         <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-500" />
 
-        {/* Badge */}
+        {/* Subheading Badge */}
         <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 font-extrabold text-xs">
           <Sparkles className="w-4 h-4 text-amber-400" />
-          <span>Ganesh Darshan</span>
+          <span>{config.darshanSubheading || "Ganesh Darshan — Unicode Estates"}</span>
         </div>
 
         {/* Main Heading */}
@@ -34,8 +36,8 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
         {/* Large Ganesh Idol Visual */}
         <div className="relative max-w-md mx-auto rounded-3xl overflow-hidden border border-amber-500/30 shadow-2xl group bg-slate-950">
           <img
-            src={config.idolImageUrl}
-            alt="Unicode Estates Ganesha"
+            src={ganeshImg}
+            alt="Ganesh idol of Unicode Estates Ganesh Chaturthi Celebrations 2026"
             className="w-full h-[320px] sm:h-[380px] object-cover object-center group-hover:scale-105 transition duration-700"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
@@ -51,7 +53,7 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
           </div>
         </div>
 
-        {/* Brief Content & Event Card */}
+        {/* Event Card */}
         <div className="max-w-xl mx-auto space-y-4">
           <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-medium">
             "{config.darshanMessage}"
@@ -70,7 +72,7 @@ export const GaneshDarshan: React.FC<GaneshDarshanProps> = ({
             </div>
             <div className="flex flex-col items-center border-t sm:border-t-0 sm:border-l border-slate-800 pt-2 sm:pt-0">
               <MapPin className="w-4 h-4 text-amber-400 mb-1" />
-              <span className="text-[10px] text-slate-400 font-bold uppercase">Venue</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Venue</span>
               <span className="font-bold text-white mt-0.5">{config.sthapana.location}</span>
             </div>
           </div>

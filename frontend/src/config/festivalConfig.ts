@@ -55,6 +55,22 @@ export interface FestivalUpdateCategory {
   items: FestivalScheduleItem[];
 }
 
+export interface NimajjanClosingMessage {
+  lines: string[];
+  communityText: string;
+  gratitudeText: string;
+}
+
+export interface NimajjanInfo {
+  title: string;
+  subheading: string;
+  startingTime: string;
+  duration: string;
+  route: string;
+  chants: string[];
+  closingMessage: NimajjanClosingMessage;
+}
+
 export interface FestivalConfig {
   communityName: string;
   festivalName: string;
@@ -63,12 +79,16 @@ export interface FestivalConfig {
   tagline: string;
   welcomeMessage: string;
   darshanHeading: string;
+  darshanSubheading: string;
   darshanMessage: string;
   venue: string;
   organizer: string;
   datesText: string;
   idolImageUrl: string;
   mandapImageUrl: string;
+  images: {
+    ganeshIdol: string;
+  };
   donationHeading: string;
   donationMessage: string;
   donationPresets: number[];
@@ -84,6 +104,7 @@ export interface FestivalConfig {
   prasad: PrasadInfo;
   culturalPrograms: CulturalProgramsInfo;
   visarjan: VisarjanInfo;
+  nimajjan: NimajjanInfo;
 
   notifications: FestivalNotification[];
   updates: FestivalUpdateCategory[];
@@ -91,20 +112,23 @@ export interface FestivalConfig {
 
 export const defaultFestivalConfig: FestivalConfig = {
   communityName: 'Unicode Estates',
-  festivalName: 'Unicode Estates Ganesh Chaturthi Celebrations 2026',
+  festivalName: 'Ganesh Chaturthi Celebrations 2026',
   festivalType: 'Ganesh Chaturthi',
   festivalYear: '2026',
-  tagline: 'Celebrating Ganesh Chaturthi Together',
-  welcomeMessage:
-    'Come together with our Unicode Estates community to celebrate Ganpati Bappa with devotion, joy, togetherness and new beginnings.',
+  tagline: 'Together in devotion. Together as a community.',
+  welcomeMessage: 'Together in devotion. Together as a community.',
   darshanHeading: 'Ganpati Bappa Morya! 🙏',
+  darshanSubheading: 'Ganesh Darshan — Unicode Estates',
   darshanMessage:
     'Welcome to the Unicode Estates Ganesh Chaturthi celebration.',
   venue: 'Unicode Estates',
   organizer: 'Unicode Estates Cultural & Festival Committee',
   datesText: '14 September 2026',
-  idolImageUrl: 'https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=1200',
-  mandapImageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=1200',
+  idolImageUrl: '/assets/images/unicode-estates-ganesh-idol.png',
+  mandapImageUrl: '/assets/images/unicode-estates-ganesh-idol.png',
+  images: {
+    ganeshIdol: '/assets/images/unicode-estates-ganesh-idol.png',
+  },
   donationHeading: 'Support Unicode Estates Ganesh Chaturthi',
   donationMessage:
     'Your contribution helps our community come together to celebrate Ganpati Bappa.',
@@ -169,8 +193,38 @@ export const defaultFestivalConfig: FestivalConfig = {
     possibleDurations: '5 or 7 days',
     selectedDuration: null,
     startingTime: '5:00 PM',
-    route: 'Route details will be announced soon.',
+    route: 'Update Soon',
     status: 'Visarjan: 5 or 7-day celebration — final schedule will be announced soon.',
+  },
+
+  // Nimajjan details & chants
+  nimajjan: {
+    title: 'Ganesh Nimajjan Utsav',
+    subheading: 'With devotion in our hearts, we bid farewell to Ganpati Bappa.',
+    startingTime: '5:00 PM',
+    duration: '5 or 7 days — Update Soon',
+    route: 'Update Soon',
+    chants: [
+      'Ganpati Bappa Morya! 🙏',
+      'Mangal Murti Morya!',
+      'Ganpati Bappa — Morya!',
+      'Bappa Morya — Morya!',
+      'Ganpati Bappa Morya — Pudchya Varshi Lavkar Ya!',
+      'Mangal Murti Morya — Pudchya Varshi Lavkar Ya!',
+      'Ganpati Bappa Morya — Unicode Estates Morya!',
+      'Bappa Bappa Morya — Mangal Murti Morya!',
+      'Ganpati Bappa Morya — Sarvanchya Ghari Anand Yao!',
+      'Ganpati Bappa Morya — Pudchya Varshi Lavkar Ya!',
+    ],
+    closingMessage: {
+      lines: [
+        'Until we meet again, Bappa. ❤️',
+        'Ganpati Bappa Morya!',
+        'Pudchya Varshi Lavkar Ya!',
+      ],
+      communityText: 'From the entire Unicode Estates community',
+      gratitudeText: 'Thank you, Bappa, for bringing us together.',
+    },
   },
 
   // Data-driven notifications
