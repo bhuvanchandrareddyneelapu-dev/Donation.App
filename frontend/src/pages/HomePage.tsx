@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ShieldCheck } from 'lucide-react';
 import { defaultFestivalConfig, FestivalConfig } from '../config/festivalConfig';
@@ -12,13 +12,40 @@ import { DonationStep } from '../components/festival/DonationStep';
 import { DonationSuccess } from '../components/festival/DonationSuccess';
 import { NimajjanExperience } from '../components/festival/NimajjanExperience';
 import { DonorWall } from '../components/donation/DonorWall';
+import api from '../services/api';
 
 export const HomePage: React.FC = () => {
-  const [config] = useState<FestivalConfig>(defaultFestivalConfig);
+  const [config, setConfig] = useState<FestivalConfig>(() => {
+    const saved = localStorage.getItem('unicode_estates_festival_config');
+    if (saved) {
+      try {
+        return { ...defaultFestivalConfig, ...JSON.parse(saved) };
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return defaultFestivalConfig;
+  });
+
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [maxVisitedStep, setMaxVisitedStep] = useState<number>(2);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [showNimajjanModal, setShowNimajjanModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    const loadLiveConfig = async () => {
+      try {
+        const res = await api.get('/festivals/1');
+        if (res.data && res.data.configJson) {
+          const parsed = JSON.parse(res.data.configJson);
+          setConfig((prev) => ({ ...prev, ...parsed }));
+        }
+      } catch (err) {
+        console.warn('Using local/default festival configuration:', err);
+      }
+    };
+    loadLiveConfig();
+  }, []);
 
   const goToStep = (step: number) => {
     setCurrentStep(step);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Sparkles } from 'lucide-react';
 import { CashDonationModal } from '../components/volunteer/CashDonationModal';
 import { ReportsModal } from '../components/reports/ReportsModal';
 import { Festival } from '../types';
@@ -72,6 +72,16 @@ export const DashboardPage: React.FC = () => {
               <FileText className="w-4 h-4 text-orange-400" />
               <span>Export Reports</span>
             </button>
+
+            {(user?.role === 'FESTIVAL_ADMIN' || user?.role === 'SUPER_ADMIN') && (
+              <a
+                href="/admin/festival"
+                className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:brightness-110 text-white font-extrabold text-xs shadow-lg shadow-orange-500/30 flex items-center space-x-2 transition"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Festival Management</span>
+              </a>
+            )}
 
             {(user?.role === 'VOLUNTEER' || user?.role === 'FESTIVAL_ADMIN' || user?.role === 'SUPER_ADMIN') && (
               <button

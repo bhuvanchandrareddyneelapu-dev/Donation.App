@@ -13,6 +13,7 @@ import { CommunityPage } from './pages/CommunityPage';
 import { VerifyReceiptPage } from './pages/VerifyReceiptPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { AdminFestivalManagementPage } from './pages/AdminFestivalManagementPage';
 import { DonorHistoryPage } from './pages/DonorHistoryPage';
 
 const queryClient = new QueryClient({
@@ -41,6 +42,7 @@ export const App: React.FC = () => {
                 <Route path="/verify" element={<VerifyReceiptPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/admin" element={<AdminLoginPage />} />
+                <Route path="/admin/festival" element={<AdminFestivalManagementPage />} />
                 <Route path="/login" element={<AdminLoginPage />} />
                 <Route path="/donor/history" element={<DonorHistoryPage />} />
               </Routes>

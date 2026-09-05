@@ -35,16 +35,17 @@ public class FestivalService {
 
     public Festival updateFestival(Long id, Festival updatedDetails) {
         return festivalRepository.findById(id).map(festival -> {
-            festival.setName(updatedDetails.getName());
-            festival.setFestivalType(updatedDetails.getFestivalType());
-            festival.setBannerUrl(updatedDetails.getBannerUrl());
-            festival.setIdolImageUrl(updatedDetails.getIdolImageUrl());
-            festival.setDescription(updatedDetails.getDescription());
-            festival.setVenue(updatedDetails.getVenue());
-            festival.setOrganizer(updatedDetails.getOrganizer());
-            festival.setTargetAmount(updatedDetails.getTargetAmount());
-            festival.setInstallationDate(updatedDetails.getInstallationDate());
-            festival.setImmersionDate(updatedDetails.getImmersionDate());
+            if (updatedDetails.getName() != null) festival.setName(updatedDetails.getName());
+            if (updatedDetails.getFestivalType() != null) festival.setFestivalType(updatedDetails.getFestivalType());
+            if (updatedDetails.getBannerUrl() != null) festival.setBannerUrl(updatedDetails.getBannerUrl());
+            if (updatedDetails.getIdolImageUrl() != null) festival.setIdolImageUrl(updatedDetails.getIdolImageUrl());
+            if (updatedDetails.getDescription() != null) festival.setDescription(updatedDetails.getDescription());
+            if (updatedDetails.getVenue() != null) festival.setVenue(updatedDetails.getVenue());
+            if (updatedDetails.getOrganizer() != null) festival.setOrganizer(updatedDetails.getOrganizer());
+            if (updatedDetails.getTargetAmount() != null) festival.setTargetAmount(updatedDetails.getTargetAmount());
+            if (updatedDetails.getInstallationDate() != null) festival.setInstallationDate(updatedDetails.getInstallationDate());
+            if (updatedDetails.getImmersionDate() != null) festival.setImmersionDate(updatedDetails.getImmersionDate());
+            if (updatedDetails.getConfigJson() != null) festival.setConfigJson(updatedDetails.getConfigJson());
             return festivalRepository.save(festival);
         }).orElseThrow(() -> new RuntimeException("Festival not found with id: " + id));
     }

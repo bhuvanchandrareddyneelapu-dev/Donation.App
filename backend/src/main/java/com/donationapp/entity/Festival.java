@@ -57,6 +57,10 @@ public class Festival {
     private LocalDate immersionDate;
 
     private String qrCodeUrl;
+    
+    @Column(columnDefinition = "TEXT")
+    private String configJson;
+
     private boolean active = true;
 
     @Column(nullable = false, updatable = false)
@@ -108,6 +112,9 @@ public class Festival {
 
     public String getQrCodeUrl() { return qrCodeUrl; }
     public void setQrCodeUrl(String qrCodeUrl) { this.qrCodeUrl = qrCodeUrl; }
+
+    public String getConfigJson() { return configJson; }
+    public void setConfigJson(String configJson) { this.configJson = configJson; }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
