@@ -108,6 +108,9 @@ public class EmailService {
     }
 
     private String getRecipientEmail(Donation donation) {
+        if (donation.getDonorEmail() != null && !donation.getDonorEmail().isBlank()) {
+            return donation.getDonorEmail();
+        }
         if (donation.getDonor() != null && donation.getDonor().getEmail() != null && !donation.getDonor().getEmail().isBlank()) {
             return donation.getDonor().getEmail();
         }

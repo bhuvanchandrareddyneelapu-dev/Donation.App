@@ -21,6 +21,7 @@ public class DonationCreateRequest {
     private String donorPhone;
 
     private String donorAddress;
+    private String donorEmail;
 
     @NotNull
     @DecimalMin(value = "1.0", message = "Minimum donation amount is ₹1")
@@ -48,6 +49,9 @@ public class DonationCreateRequest {
 
     public String getDonorAddress() { return donorAddress; }
     public void setDonorAddress(String donorAddress) { this.donorAddress = donorAddress; }
+
+    public String getDonorEmail() { return donorEmail; }
+    public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }

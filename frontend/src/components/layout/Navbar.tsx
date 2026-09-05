@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, ShieldCheck, Users, Search, UserCheck, LogOut, Menu, X, Lock } from 'lucide-react';
+import { Heart, ShieldCheck, Users, Search, UserCheck, LogOut, Menu, X, Lock, Camera } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
@@ -43,6 +43,11 @@ export const Navbar: React.FC = () => {
 
             <Link to="/dasara" className="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-extrabold text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition">
               <span>🏹 Dasara</span>
+            </Link>
+
+            <Link to="/photos" className="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <Camera className="w-4 h-4 text-orange-400" />
+              <span>Photos</span>
             </Link>
 
             <Link to="/transparency" className="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition">
@@ -123,6 +128,13 @@ export const Navbar: React.FC = () => {
             className="block px-3 py-2 rounded-lg text-sm font-bold text-amber-400 bg-amber-500/10"
           >
             🏹 Dasara
+          </Link>
+          <Link
+            to="/photos"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-lg text-sm font-bold text-slate-300 hover:bg-slate-800"
+          >
+            📷 Festival Photos
           </Link>
           <Link
             to="/transparency"

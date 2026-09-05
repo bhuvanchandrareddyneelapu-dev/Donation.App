@@ -95,15 +95,32 @@ export const DonationSuccess: React.FC<DonationSuccessProps> = ({
             <ArrowRight className="w-4 h-4" />
           </a>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a
+              href={`/verify-receipt?hash=${receiptData?.qrCodeHash || receiptNum}`}
+              className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 transition"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-400" />
+              <span>View Receipt</span>
+            </a>
+
             <a
               href={`/api/v1/receipts/${receiptNum}/pdf`}
               target="_blank"
               rel="noreferrer"
-              className="w-full sm:w-1/2 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 transition"
+              className="w-full py-3 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-orange-600/30 transition"
             >
-              <Download className="w-4 h-4 text-orange-400" />
-              <span>Download PDF Receipt</span>
+              <Download className="w-4 h-4 text-white" />
+              <span>Download PDF</span>
+            </a>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a
+              href="/donor/history"
+              className="w-full sm:w-1/2 py-3 rounded-2xl bg-slate-800/90 hover:bg-slate-800 text-slate-200 font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 transition"
+            >
+              <span>Go to Donation History</span>
             </a>
 
             <button
@@ -112,7 +129,7 @@ export const DonationSuccess: React.FC<DonationSuccessProps> = ({
               className="w-full sm:w-1/2 py-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center space-x-2 border border-slate-700 transition"
             >
               <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
-              <span>Return to Festival Welcome</span>
+              <span>Back to Home</span>
             </button>
           </div>
         </div>

@@ -13,6 +13,7 @@ public class DonationResponse {
     private String donorName;
     private String donorPhone;
     private String donorAddress;
+    private String donorEmail;
     private BigDecimal amount;
     private Festival.FestivalType purpose;
     private Donation.PaymentType paymentType;
@@ -41,6 +42,9 @@ public class DonationResponse {
 
     public String getDonorAddress() { return donorAddress; }
     public void setDonorAddress(String donorAddress) { this.donorAddress = donorAddress; }
+
+    public String getDonorEmail() { return donorEmail; }
+    public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }

@@ -56,7 +56,8 @@ public class ReceiptController {
     @GetMapping("/{receiptNumber}/pdf")
     public ResponseEntity<byte[]> downloadReceiptPdf(@PathVariable String receiptNumber) {
         Receipt receipt = receiptRepository.findByReceiptNumber(receiptNumber)
-                .orElseThrow(() -> new RuntimeException("Receipt not found: " + receiptNumber));
+                .orElseGet(() -> receiptRepository.findByQrCodeHash(receiptNumber)
+                        .orElseThrow(() -> new RuntimeException("Receipt not found: " + receiptNumber)));
 
         Donation donation = receipt.getDonation();
         byte[] pdfBytes = pdfReceiptService.generateReceiptPdf(donation, receipt);

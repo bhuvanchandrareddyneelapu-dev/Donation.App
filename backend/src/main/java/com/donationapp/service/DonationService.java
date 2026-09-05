@@ -59,6 +59,7 @@ public class DonationService {
         donation.setDonorName(req.getDonorName());
         donation.setDonorPhone(req.getDonorPhone());
         donation.setDonorAddress(req.getDonorAddress());
+        donation.setDonorEmail(req.getDonorEmail());
         donation.setAmount(req.getAmount());
         donation.setPurpose(req.getPurpose() != null ? req.getPurpose() : festival.getFestivalType());
         donation.setPaymentType(Donation.PaymentType.ONLINE);
@@ -106,6 +107,7 @@ public class DonationService {
         donation.setDonorName(req.getDonorName());
         donation.setDonorPhone(req.getDonorPhone());
         donation.setDonorAddress(req.getDonorAddress());
+        donation.setDonorEmail(req.getDonorEmail());
         donation.setAmount(req.getAmount());
         donation.setPurpose(req.getPurpose() != null ? req.getPurpose() : festival.getFestivalType());
         donation.setPaymentType(req.getPaymentType());
@@ -146,6 +148,7 @@ public class DonationService {
         donation.setDonorName(req.getDonorName());
         donation.setDonorPhone(req.getDonorPhone());
         donation.setDonorAddress(req.getDonorAddress());
+        donation.setDonorEmail(req.getDonorEmail());
         donation.setAmount(req.getAmount());
         donation.setPurpose(req.getPurpose() != null ? req.getPurpose() : festival.getFestivalType());
         donation.setPaymentType(Donation.PaymentType.CASH);
@@ -206,6 +209,7 @@ public class DonationService {
         resp.setDonorName(donation.isAnonymous() ? "Anonymous Donor" : donation.getDonorName());
         resp.setDonorPhone(donation.getDonorPhone());
         resp.setDonorAddress(donation.getDonorAddress());
+        resp.setDonorEmail(donation.getDonorEmail());
         resp.setAmount(donation.getAmount());
         resp.setPurpose(donation.getPurpose());
         resp.setPaymentType(donation.getPaymentType());

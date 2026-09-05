@@ -56,6 +56,7 @@ export interface VerifyPaymentPayload {
   donorName: string;
   donorPhone: string;
   donorAddress?: string;
+  donorEmail?: string;
   amount: number;
   purpose?: string;
   isAnonymous?: boolean;

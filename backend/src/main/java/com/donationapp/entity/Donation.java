@@ -45,6 +45,8 @@ public class Donation {
 
     private String donorAddress;
 
+    private String donorEmail;
+
     @Column(nullable = false)
     private BigDecimal amount;
 
@@ -103,6 +105,9 @@ public class Donation {
 
     public String getDonorAddress() { return donorAddress; }
     public void setDonorAddress(String donorAddress) { this.donorAddress = donorAddress; }
+
+    public String getDonorEmail() { return donorEmail; }
+    public void setDonorEmail(String donorEmail) { this.donorEmail = donorEmail; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }

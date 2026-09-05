@@ -19,6 +19,8 @@ export const DonationStep: React.FC<DonationStepProps> = ({
   const [customAmount, setCustomAmount] = useState<string>('');
   const [donorName, setDonorName] = useState<string>('');
   const [donorPhone, setDonorPhone] = useState<string>('');
+  const [donorEmail, setDonorEmail] = useState<string>('');
+  const [noEmail, setNoEmail] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -39,6 +41,7 @@ export const DonationStep: React.FC<DonationStepProps> = ({
 
     const nameToUse = isAnonymous ? 'Anonymous Donor' : donorName || 'Devotee';
     const phoneToUse = donorPhone || '+91 9876543210';
+    const emailToUse = noEmail ? '' : donorEmail;
 
     try {
       // Step 1: Create Razorpay order on backend
@@ -56,6 +59,7 @@ export const DonationStep: React.FC<DonationStepProps> = ({
         festivalName: config.festivalName,
         donorName: nameToUse,
         donorPhone: phoneToUse,
+        donorEmail: emailToUse,
         onSuccess: async (razorpayResponse) => {
           try {
             // Step 3: Verify payment and generate PDF receipt on backend
@@ -66,6 +70,7 @@ export const DonationStep: React.FC<DonationStepProps> = ({
               festivalId: config.festivalId,
               donorName: nameToUse,
               donorPhone: phoneToUse,
+              donorEmail: emailToUse,
               amount: finalAmount,
               isAnonymous: isAnonymous,
               remarks: message || `${config.communityName} Ganesh Chaturthi contribution`,
@@ -241,6 +246,33 @@ export const DonationStep: React.FC<DonationStepProps> = ({
                   onChange={(e) => setDonorPhone(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:border-orange-500 focus:outline-none"
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Email Address (For PDF Receipt)</label>
+              <input
+                type="email"
+                disabled={noEmail}
+                placeholder="e.g. bhuvan@example.com"
+                value={donorEmail}
+                onChange={(e) => setDonorEmail(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:border-orange-500 focus:outline-none disabled:opacity-50 mb-2"
+              />
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="noEmailCheckStep"
+                  checked={noEmail}
+                  onChange={(e) => {
+                    setNoEmail(e.target.checked);
+                    if (e.target.checked) setDonorEmail('');
+                  }}
+                  className="w-3.5 h-3.5 rounded border-slate-700 text-orange-600 focus:ring-orange-500"
+                />
+                <label htmlFor="noEmailCheckStep" className="text-xs text-slate-400 cursor-pointer">
+                  I don't have / don't want to provide email (Receipt available in app)
+                </label>
               </div>
             </div>
 
