@@ -11,7 +11,7 @@ public class RazorpayOrderRequest {
     private Long festivalId;
 
     @NotNull(message = "Donation amount is required")
-    @DecimalMin(value = "1.0", message = "Minimum donation amount is ₹1")
+    @DecimalMin(value = "1000.0", message = "Minimum contribution is ₹1,000.")
     private BigDecimal amount;
 
     private String currency = "INR";

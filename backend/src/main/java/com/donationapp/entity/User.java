@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 public class User {
 
     public enum Role {
+        HEAD,
         SUPER_ADMIN,
+        SUPERVISOR,
         FESTIVAL_ADMIN,
         TREASURER,
         VOLUNTEER,

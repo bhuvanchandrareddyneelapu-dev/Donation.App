@@ -15,7 +15,7 @@ export const DonationStep: React.FC<DonationStepProps> = ({
   onBack,
   onSuccess,
 }) => {
-  const [amount, setAmount] = useState<number>(501);
+  const [amount, setAmount] = useState<number>(1000);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [donorName, setDonorName] = useState<string>('');
   const [donorPhone, setDonorPhone] = useState<string>('');
@@ -26,13 +26,13 @@ export const DonationStep: React.FC<DonationStepProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
-  const presetAmounts = config.donationPresets || [101, 501, 1001, 2001];
+  const presetAmounts = [1000, 2001, 5001, 10000];
 
   const handleInitiateRazorpay = async (e: React.FormEvent) => {
     e.preventDefault();
     const finalAmount = customAmount ? parseFloat(customAmount) : amount;
-    if (!finalAmount || finalAmount < 1) {
-      setErrorMsg('Please select or enter a valid donation amount.');
+    if (!finalAmount || finalAmount < 1000) {
+      setErrorMsg('Minimum contribution is ₹1,000.');
       return;
     }
 

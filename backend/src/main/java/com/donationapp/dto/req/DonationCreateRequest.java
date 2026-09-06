@@ -22,9 +22,12 @@ public class DonationCreateRequest {
 
     private String donorAddress;
     private String donorEmail;
+    private String gotram;
+    private String familyDetails;
+    private boolean publicVisibility = true;
 
     @NotNull
-    @DecimalMin(value = "1.0", message = "Minimum donation amount is ₹1")
+    @DecimalMin(value = "1000.0", message = "Minimum contribution is ₹1,000.")
     private BigDecimal amount;
 
     private Festival.FestivalType purpose = Festival.FestivalType.GANESH_CHATURTHI;
@@ -67,4 +70,13 @@ public class DonationCreateRequest {
 
     public String getRemarks() { return remarks; }
     public void setRemarks(String remarks) { this.remarks = remarks; }
+
+    public String getGotram() { return gotram; }
+    public void setGotram(String gotram) { this.gotram = gotram; }
+
+    public String getFamilyDetails() { return familyDetails; }
+    public void setFamilyDetails(String familyDetails) { this.familyDetails = familyDetails; }
+
+    public boolean isPublicVisibility() { return publicVisibility; }
+    public void setPublicVisibility(boolean publicVisibility) { this.publicVisibility = publicVisibility; }
 }

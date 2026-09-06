@@ -16,6 +16,9 @@ import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminFestivalManagementPage } from './pages/AdminFestivalManagementPage';
 import { DonorHistoryPage } from './pages/DonorHistoryPage';
 import { PhotosPage } from './pages/PhotosPage';
+import { PublicDonorsPage } from './pages/PublicDonorsPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminReportsPage } from './pages/AdminReportsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +46,8 @@ export const App: React.FC = () => {
                 <Route path="/gallery" element={<PhotosPage />} />
                 <Route path="/festival-photos" element={<PhotosPage />} />
                 <Route path="/transparency" element={<TransparencyPage />} />
+                <Route path="/donors" element={<PublicDonorsPage />} />
+                <Route path="/donor-wall" element={<PublicDonorsPage />} />
                 <Route path="/community" element={<CommunityPage />} />
                 <Route path="/verify" element={<VerifyReceiptPage />} />
                 <Route path="/verify-receipt" element={<VerifyReceiptPage />} />
@@ -50,9 +55,14 @@ export const App: React.FC = () => {
                 <Route path="/verify/:hash" element={<VerifyReceiptPage />} />
                 <Route path="/history" element={<DonorHistoryPage />} />
                 <Route path="/donor/history" element={<DonorHistoryPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<AdminDashboardPage />} />
                 <Route path="/admin" element={<AdminLoginPage />} />
+                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                <Route path="/admin/donations" element={<AdminDashboardPage />} />
+                <Route path="/admin/cash-donation" element={<AdminDashboardPage />} />
+                <Route path="/admin/reports" element={<AdminReportsPage />} />
                 <Route path="/admin/festival" element={<AdminFestivalManagementPage />} />
+                <Route path="/admin/settings" element={<AdminFestivalManagementPage />} />
                 <Route path="/login" element={<AdminLoginPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

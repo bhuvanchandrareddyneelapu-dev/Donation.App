@@ -60,6 +60,9 @@ export interface VerifyPaymentPayload {
   amount: number;
   purpose?: string;
   isAnonymous?: boolean;
+  gotram?: string;
+  familyDetails?: string;
+  publicVisibility?: boolean;
   remarks?: string;
 }
 

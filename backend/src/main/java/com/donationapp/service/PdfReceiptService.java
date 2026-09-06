@@ -50,6 +50,12 @@ public class PdfReceiptService {
             addTableCell(table, "Event / Festival:", donation.getFestival().getName(), boldBodyFont, bodyFont);
             addTableCell(table, "Organization:", donation.getFestival().getOrganization() != null ? donation.getFestival().getOrganization().getName() : "Festival Committee", boldBodyFont, bodyFont);
             addTableCell(table, "Donor Name:", donation.isAnonymous() ? "Anonymous Donor" : donation.getDonorName(), boldBodyFont, bodyFont);
+            if (donation.getGotram() != null && !donation.getGotram().isBlank()) {
+                addTableCell(table, "Gotram:", donation.getGotram(), boldBodyFont, bodyFont);
+            }
+            if (donation.getFamilyDetails() != null && !donation.getFamilyDetails().isBlank()) {
+                addTableCell(table, "Family Details:", donation.getFamilyDetails(), boldBodyFont, bodyFont);
+            }
             addTableCell(table, "Donor Phone:", donation.getDonorPhone(), boldBodyFont, bodyFont);
             addTableCell(table, "Donation Purpose:", donation.getPurpose().name(), boldBodyFont, bodyFont);
             addTableCell(table, "Payment Method:", donation.getPaymentType().name(), boldBodyFont, bodyFont);

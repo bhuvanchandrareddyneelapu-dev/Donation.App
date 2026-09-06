@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, ShieldCheck, Users, Search, UserCheck, LogOut, Menu, X, Lock, Camera } from 'lucide-react';
+import { Heart, ShieldCheck, Users, Search, UserCheck, LogOut, Menu, X, Lock, Camera, Share2, Award } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
@@ -11,6 +11,11 @@ export const Navbar: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/admin');
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = `🚩 *Unicode Estates Ganesh Chaturthi Celebrations 2026* 🚩\n\nJoin us in offering your devotion and contribution for Bappa's Grand Celebration! 🙏\n\n✨ Minimum Contribution: ₹1,000\n✨ 100% Transparent Public Audit & Instant Verified PDF Receipts\n\nDonate & View Live Audit Wall:\nhttps://donation.app/donors\n\nGanpati Bappa Morya! 🌺`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
@@ -41,6 +46,11 @@ export const Navbar: React.FC = () => {
               <span>🕉️ Ganesh Chaturthi</span>
             </Link>
 
+            <Link to="/donors" className="flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition">
+              <Award className="w-4 h-4 text-emerald-400" />
+              <span>Donors & Transparency</span>
+            </Link>
+
             <Link to="/dasara" className="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-extrabold text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition">
               <span>🏹 Dasara</span>
             </Link>
@@ -66,16 +76,25 @@ export const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* Committee Organizer Portal Links */}
+          {/* Committee Organizer Portal Links & WhatsApp Share */}
           <div className="hidden md:flex items-center space-x-3">
+            <button
+              onClick={handleShareWhatsApp}
+              className="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-extrabold bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600/30 transition shadow-sm"
+              title="Share on WhatsApp"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Share</span>
+            </button>
+
             {user ? (
               <div className="flex items-center space-x-3">
                 <Link
-                  to="/dashboard"
+                  to="/admin/dashboard"
                   className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-extrabold bg-slate-800 border border-slate-700 text-slate-200 hover:border-orange-500/50 hover:text-white transition"
                 >
                   <UserCheck className="w-4 h-4 text-orange-400" />
-                  <span>Admin Dashboard ({user.role})</span>
+                  <span>Supervisor Portal ({user.role})</span>
                 </Link>
 
                 <button
@@ -100,7 +119,14 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-2">
+            <button
+              onClick={handleShareWhatsApp}
+              className="p-2 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30"
+              title="Share"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white focus:outline-none"
@@ -121,6 +147,13 @@ export const Navbar: React.FC = () => {
             className="block px-3 py-2 rounded-lg text-sm font-bold text-orange-400 bg-orange-500/10"
           >
             🕉️ Ganesh Chaturthi
+          </Link>
+          <Link
+            to="/donors"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-lg text-sm font-bold text-emerald-400 bg-emerald-500/10"
+          >
+            🏆 Donors & Transparency
           </Link>
           <Link
             to="/dasara"
@@ -158,7 +191,7 @@ export const Navbar: React.FC = () => {
             Verify Receipt
           </Link>
           <Link
-            to="/admin"
+            to="/admin/dashboard"
             onClick={() => setMobileMenuOpen(false)}
             className="block w-full text-center py-3 rounded-xl bg-slate-800 font-bold text-slate-300 text-xs border border-slate-700"
           >

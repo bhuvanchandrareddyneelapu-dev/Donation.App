@@ -2,6 +2,7 @@ package com.donationapp.service;
 
 import com.donationapp.entity.Expense;
 import com.donationapp.entity.Festival;
+import com.donationapp.repository.DonationRepository;
 import com.donationapp.repository.ExpenseProofRepository;
 import com.donationapp.repository.ExpenseRepository;
 import com.donationapp.repository.FestivalRepository;
@@ -32,6 +33,9 @@ public class TransparencyServiceTest {
     @Mock
     private FestivalRepository festivalRepository;
 
+    @Mock
+    private DonationRepository donationRepository;
+
     @InjectMocks
     private TransparencyService transparencyService;
 
@@ -50,6 +54,7 @@ public class TransparencyServiceTest {
     void testGetFestivalTransparencySummary_Success() {
         when(festivalRepository.findById(1L)).thenReturn(Optional.of(festival));
         when(expenseRepository.sumTotalExpenseByFestivalId(1L)).thenReturn(new BigDecimal("1500000.00"));
+        when(donationRepository.sumTotalCollectionByFestivalId(1L)).thenReturn(new BigDecimal("3450000.00"));
         when(expenseRepository.findByFestivalId(1L)).thenReturn(List.of());
 
         Map<String, Object> summary = transparencyService.getFestivalTransparencySummary(1L);

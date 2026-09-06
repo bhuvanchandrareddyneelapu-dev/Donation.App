@@ -20,14 +20,27 @@ public interface DonationRepository extends JpaRepository<Donation, Long> {
     Optional<Donation> findByRazorpayPaymentId(String razorpayPaymentId);
     Optional<Donation> findByTransactionId(String transactionId);
     
-    @Query("SELECT SUM(d.amount) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED'")
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
     BigDecimal sumTotalCollectionByFestivalId(@Param("festivalId") Long festivalId);
 
-    @Query("SELECT SUM(d.amount) FROM Donation d WHERE d.paymentStatus = 'COMPLETED'")
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND d.paymentType = 'ONLINE' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    BigDecimal calculateTotalOnlineCollection(@Param("festivalId") Long festivalId);
+
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND d.paymentType = 'CASH' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    BigDecimal calculateTotalCashCollection(@Param("festivalId") Long festivalId);
+
+    @Query("SELECT COUNT(d) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    Long countValidDonationsByFestivalId(@Param("festivalId") Long festivalId);
+
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
     BigDecimal sumTotalCollectionAll();
 
-    @Query("SELECT COUNT(DISTINCT d.donorPhone) FROM Donation d WHERE d.paymentStatus = 'COMPLETED'")
+    @Query("SELECT COUNT(DISTINCT d.donorPhone) FROM Donation d WHERE d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
     Long countTotalUniqueDonors();
+
+    List<Donation> findByFestivalIdAndIsReversedFalseOrderByIdDesc(Long festivalId);
+
+    List<Donation> findByFestivalIdAndPublicVisibilityTrueAndIsReversedFalseOrderByIdDesc(Long festivalId);
 
     List<Donation> findByDonorPhoneContainingOrDonorNameContainingOrTransactionIdContaining(String phone, String name, String txId);
 }

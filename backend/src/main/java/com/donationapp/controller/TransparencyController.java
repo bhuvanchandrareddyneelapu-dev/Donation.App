@@ -15,9 +15,16 @@ import java.util.Map;
 public class TransparencyController {
 
     private final TransparencyService transparencyService;
+    private final com.donationapp.service.DonationService donationService;
 
-    public TransparencyController(TransparencyService transparencyService) {
+    public TransparencyController(TransparencyService transparencyService, com.donationapp.service.DonationService donationService) {
         this.transparencyService = transparencyService;
+        this.donationService = donationService;
+    }
+
+    @GetMapping("/donors")
+    public ResponseEntity<?> getPublicDonors(@RequestParam(defaultValue = "1") Long festivalId) {
+        return ResponseEntity.ok(donationService.getPublicDonations(festivalId));
     }
 
     @GetMapping("/festival/{festivalId}/summary")

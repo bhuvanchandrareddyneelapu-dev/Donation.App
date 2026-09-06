@@ -40,6 +40,7 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">Platform Features</h4>
             <ul className="space-y-2.5 text-sm">
+              <li><a href="/donors" className="hover:text-emerald-400 font-semibold transition">🏆 Public Donor Wall & Audit</a></li>
               <li><a href="/photos" className="hover:text-orange-400 transition">Festival Photo Gallery</a></li>
               <li><a href="/transparency" className="hover:text-orange-400 transition">Live Expense Breakdown</a></li>
               <li><a href="/verify" className="hover:text-orange-400 transition">QR Code Receipt Verification</a></li>

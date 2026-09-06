@@ -23,6 +23,13 @@ public class DonationResponse {
     private String qrCodeHash;
     private boolean isAnonymous;
     private String volunteerName;
+    private String gotram;
+    private String familyDetails;
+    private boolean publicVisibility = true;
+    private boolean isReversed = false;
+    private String reversedBy;
+    private LocalDateTime reversedAt;
+    private String reversalReason;
     private LocalDateTime createdAt;
 
     public Long getId() { return id; }
@@ -75,4 +82,25 @@ public class DonationResponse {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getGotram() { return gotram; }
+    public void setGotram(String gotram) { this.gotram = gotram; }
+
+    public String getFamilyDetails() { return familyDetails; }
+    public void setFamilyDetails(String familyDetails) { this.familyDetails = familyDetails; }
+
+    public boolean isPublicVisibility() { return publicVisibility; }
+    public void setPublicVisibility(boolean publicVisibility) { this.publicVisibility = publicVisibility; }
+
+    public boolean isReversed() { return isReversed; }
+    public void setReversed(boolean reversed) { isReversed = reversed; }
+
+    public String getReversedBy() { return reversedBy; }
+    public void setReversedBy(String reversedBy) { this.reversedBy = reversedBy; }
+
+    public LocalDateTime getReversedAt() { return reversedAt; }
+    public void setReversedAt(LocalDateTime reversedAt) { this.reversedAt = reversedAt; }
+
+    public String getReversalReason() { return reversalReason; }
+    public void setReversalReason(String reversalReason) { this.reversalReason = reversalReason; }
 }

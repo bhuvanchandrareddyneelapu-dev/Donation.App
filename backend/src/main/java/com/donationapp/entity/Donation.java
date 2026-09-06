@@ -80,8 +80,19 @@ public class Donation {
     @JoinColumn(name = "recorded_by_volunteer_id")
     private User recordedByVolunteer;
 
+    private String gotram;
+    private String familyDetails;
+    private boolean publicVisibility = true;
+
+    private boolean isReversed = false;
+    private String reversedBy;
+    private LocalDateTime reversedAt;
+    private String reversalReason;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public Donation() {
         this.createdAt = LocalDateTime.now();
@@ -150,4 +161,28 @@ public class Donation {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getGotram() { return gotram; }
+    public void setGotram(String gotram) { this.gotram = gotram; }
+
+    public String getFamilyDetails() { return familyDetails; }
+    public void setFamilyDetails(String familyDetails) { this.familyDetails = familyDetails; }
+
+    public boolean isPublicVisibility() { return publicVisibility; }
+    public void setPublicVisibility(boolean publicVisibility) { this.publicVisibility = publicVisibility; }
+
+    public boolean isReversed() { return isReversed; }
+    public void setReversed(boolean reversed) { isReversed = reversed; }
+
+    public String getReversedBy() { return reversedBy; }
+    public void setReversedBy(String reversedBy) { this.reversedBy = reversedBy; }
+
+    public LocalDateTime getReversedAt() { return reversedAt; }
+    public void setReversedAt(LocalDateTime reversedAt) { this.reversedAt = reversedAt; }
+
+    public String getReversalReason() { return reversalReason; }
+    public void setReversalReason(String reversalReason) { this.reversalReason = reversalReason; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

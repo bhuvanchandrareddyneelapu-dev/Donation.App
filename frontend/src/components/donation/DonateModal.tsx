@@ -12,19 +12,22 @@ interface DonateModalProps {
 
 export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onSuccess }) => {
   const [step, setStep] = useState<'FORM' | 'PAYMENT' | 'SUCCESS'>('FORM');
-  const [amount, setAmount] = useState<number>(501);
+  const [amount, setAmount] = useState<number>(1000);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [donorName, setDonorName] = useState<string>('');
   const [donorPhone, setDonorPhone] = useState<string>('');
   const [donorEmail, setDonorEmail] = useState<string>('');
   const [noEmail, setNoEmail] = useState<boolean>(false);
+  const [gotram, setGotram] = useState<string>('');
+  const [familyDetails, setFamilyDetails] = useState<string>('');
+  const [publicVisibility, setPublicVisibility] = useState<boolean>(true);
   const [message, setMessage] = useState<string>('');
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [receiptData, setReceiptData] = useState<any>(null);
 
-  const presetAmounts = [101, 501, 1001, 2001, 5001, 11000];
+  const presetAmounts = [1000, 2001, 5001, 10000];
   const finalAmount = customAmount ? parseFloat(customAmount) : amount;
   const nameToUse = isAnonymous ? 'Anonymous Donor' : donorName || 'Devotee';
   const phoneToUse = donorPhone || '+91 9876543210';
@@ -37,8 +40,8 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
 
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!finalAmount || finalAmount < 1) {
-      setErrorMsg('Please enter a valid donation amount (minimum ₹1).');
+    if (!finalAmount || finalAmount < 1000) {
+      setErrorMsg('Minimum contribution is ₹1,000.');
       return;
     }
     if (!isAnonymous && !donorName.trim()) {
@@ -90,6 +93,9 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
               donorName: nameToUse,
               donorPhone: phoneToUse,
               donorEmail: emailToUse,
+              gotram: gotram.trim(),
+              familyDetails: familyDetails.trim(),
+              publicVisibility: publicVisibility,
               amount: finalAmount,
               isAnonymous: isAnonymous,
               remarks: message || 'Digital online contribution',
@@ -123,6 +129,9 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
           donorName: nameToUse,
           donorPhone: phoneToUse,
           donorEmail: emailToUse,
+          gotram: gotram.trim(),
+          familyDetails: familyDetails.trim(),
+          publicVisibility: publicVisibility,
           amount: finalAmount,
           paymentType: 'ONLINE',
           isAnonymous: isAnonymous,
@@ -278,6 +287,28 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                     </label>
                   </div>
                 </div>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Gotram (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Bharadwaja"
+                      value={gotram}
+                      onChange={(e) => setGotram(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:border-orange-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Family Details (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Family of 4"
+                      value={familyDetails}
+                      onChange={(e) => setFamilyDetails(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:border-orange-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-400 mb-1">Message / Prayer Note (Optional)</label>
@@ -290,18 +321,34 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                   />
                 </div>
 
-                <div className="flex items-center space-x-3 pt-1">
-                  <input
-                    type="checkbox"
-                    id="anonymousCheck"
-                    checked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-700 text-orange-600 focus:ring-orange-500"
-                  />
-                  <label htmlFor="anonymousCheck" className="text-xs text-slate-300 font-medium cursor-pointer">
-                    Keep my contribution anonymous on the public donor wall
-                  </label>
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="pubVisCheckModal"
+                      checked={publicVisibility}
+                      onChange={(e) => setPublicVisibility(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-700 text-orange-600 focus:ring-orange-500"
+                    />
+                    <label htmlFor="pubVisCheckModal" className="text-xs text-slate-300 font-medium cursor-pointer">
+                      Show my donation details on public community donor wall (`/donors`)
+                    </label>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="anonymousCheck"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-700 text-orange-600 focus:ring-orange-500"
+                    />
+                    <label htmlFor="anonymousCheck" className="text-xs text-slate-300 font-medium cursor-pointer">
+                      Keep my contribution anonymous on the public donor wall
+                    </label>
+                  </div>
                 </div>
+
               </div>
 
               <button

@@ -18,11 +18,14 @@ public class TransparencyService {
     private final ExpenseProofRepository expenseProofRepository;
     private final FestivalRepository festivalRepository;
 
+    private final com.donationapp.repository.DonationRepository donationRepository;
+
     public TransparencyService(ExpenseRepository expenseRepository, ExpenseProofRepository expenseProofRepository,
-                               FestivalRepository festivalRepository) {
+                               FestivalRepository festivalRepository, com.donationapp.repository.DonationRepository donationRepository) {
         this.expenseRepository = expenseRepository;
         this.expenseProofRepository = expenseProofRepository;
         this.festivalRepository = festivalRepository;
+        this.donationRepository = donationRepository;
     }
 
     public List<Expense> getExpensesByFestival(Long festivalId) {
@@ -48,13 +51,16 @@ public class TransparencyService {
 
     public Map<String, Object> getFestivalTransparencySummary(Long festivalId) {
         Festival festival = festivalRepository.findById(festivalId)
-                .orElseThrow(() -> new RuntimeException("Festival not found with ID: " + festivalId));
+                .orElse(null);
 
         BigDecimal totalExpenses = expenseRepository.sumTotalExpenseByFestivalId(festivalId);
         if (totalExpenses == null) totalExpenses = BigDecimal.ZERO;
 
-        BigDecimal totalCollection = festival.getCurrentCollection();
-        BigDecimal remainingTarget = festival.getTargetAmount().subtract(totalCollection);
+        BigDecimal totalCollection = donationRepository.sumTotalCollectionByFestivalId(festivalId);
+        if (totalCollection == null) totalCollection = BigDecimal.ZERO;
+
+        BigDecimal targetAmount = festival != null && festival.getTargetAmount() != null ? festival.getTargetAmount() : BigDecimal.ZERO;
+        BigDecimal remainingTarget = targetAmount.subtract(totalCollection);
         BigDecimal netBalance = totalCollection.subtract(totalExpenses);
 
         List<Expense> expenses = expenseRepository.findByFestivalId(festivalId);
