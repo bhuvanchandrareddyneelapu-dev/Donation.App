@@ -89,6 +89,9 @@ public class Donation {
     private LocalDateTime reversedAt;
     private String reversalReason;
 
+    @Column(nullable = false)
+    private boolean isTest = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -182,6 +185,9 @@ public class Donation {
 
     public String getReversalReason() { return reversalReason; }
     public void setReversalReason(String reversalReason) { this.reversalReason = reversalReason; }
+
+    public boolean isTest() { return isTest; }
+    public void setTest(boolean test) { isTest = test; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }

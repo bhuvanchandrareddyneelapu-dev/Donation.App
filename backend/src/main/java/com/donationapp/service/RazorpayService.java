@@ -1,5 +1,6 @@
 package com.donationapp.service;
 
+import com.donationapp.dto.resp.RazorpayQrResponse;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.Utils;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +28,9 @@ public class RazorpayService {
 
     @Value("${razorpay.webhook.secret:whsec_test_secret_12345}")
     private String webhookSecret;
+
+    @Value("${donationapp.verified-upi-id:}")
+    private String verifiedUpiId;
 
     public String getRazorpayKeyId() {
         return razorpayKeyId;
@@ -127,6 +132,58 @@ public class RazorpayService {
         } catch (Exception e) {
             System.err.println("❌ Webhook signature verification failed: " + e.getMessage());
             return false;
+        }
+    }
+
+    public RazorpayQrResponse createUpiQr(BigDecimal amount, String festivalName, String donorName, boolean isTestMode) {
+        long amountInPaise = amount.multiply(new BigDecimal("100")).longValue();
+
+        try {
+            RazorpayClient client = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+
+            JSONObject qrRequest = new JSONObject();
+            qrRequest.put("type", "upi_qr");
+            qrRequest.put("name", (festivalName != null && !festivalName.isEmpty()) ? festivalName : "Unicode Estates");
+            qrRequest.put("usage", "single_use");
+            qrRequest.put("fixed_amount", true);
+            qrRequest.put("payment_amount", amountInPaise);
+            qrRequest.put("description", "Festival Contribution by " + (donorName != null ? donorName : "Devotee"));
+            qrRequest.put("close_by", (System.currentTimeMillis() / 1000) + 1800); // 30 mins expiration
+
+            com.razorpay.QrCode qrCode = client.qrCode.create(qrRequest);
+
+            String qrId = qrCode.get("id");
+            String imageUrl = qrCode.get("image_url");
+            String paymentUrl = qrCode.has("payment_url") ? (String) qrCode.get("payment_url") : null;
+            String status = qrCode.get("status");
+            Long closeBy = qrCode.has("close_by") ? ((Number) qrCode.get("close_by")).longValue() : null;
+
+            System.out.println("📱 [RAZORPAY UPI QR CREATED] ID: " + qrId + " | Image: " + imageUrl);
+            return new RazorpayQrResponse(qrId, imageUrl, paymentUrl, amount, closeBy, status, isTestMode);
+        } catch (Exception e) {
+            System.err.println("⚠️ [RAZORPAY QR API NOT AVAILABLE / ERROR]: " + e.getMessage());
+
+            if (verifiedUpiId != null && !verifiedUpiId.trim().isEmpty()) {
+                try {
+                    String upiVpa = verifiedUpiId.trim();
+                    String uri = String.format("upi://pay?pa=%s&pn=%s&am=%s&cu=INR&tn=%s",
+                            upiVpa,
+                            URLEncoder.encode(festivalName != null ? festivalName : "Unicode Estates", StandardCharsets.UTF_8),
+                            amount.toPlainString(),
+                            URLEncoder.encode("Festival Donation", StandardCharsets.UTF_8));
+                    String imageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + URLEncoder.encode(uri, StandardCharsets.UTF_8);
+
+                    System.out.println("ℹ️ Using verified configured UPI VPA fallback: " + upiVpa);
+                    return new RazorpayQrResponse("vpa_fallback_" + System.currentTimeMillis(), imageUrl, uri, amount, (System.currentTimeMillis()/1000) + 1800, "active", isTestMode);
+                } catch (Exception ex) {
+                    System.err.println("Fallback QR generation error: " + ex.getMessage());
+                }
+            }
+
+            return RazorpayQrResponse.unavailable(
+                    "Razorpay UPI QR API is not enabled for this merchant account. Enable UPI QR in your Razorpay Dashboard or click 'Pay securely with Razorpay' below.",
+                    isTestMode
+            );
         }
     }
 }

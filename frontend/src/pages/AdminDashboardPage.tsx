@@ -160,6 +160,18 @@ export const AdminDashboardPage: React.FC = () => {
             </div>
             <span className="text-[11px] text-slate-500 font-medium">Verified Devotee Contributions</span>
           </div>
+
+          {stats?.isTestMode && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 space-y-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">🧪 Test Mode Ledger</span>
+              <div className="text-2xl font-black text-amber-300">
+                ₹{stats?.testCollection?.toLocaleString('en-IN') || 0}
+              </div>
+              <span className="text-[11px] text-amber-200 font-medium">
+                {stats?.testDonations || 0} Test Payment(s) (Excluded from Public Ledger)
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Quick Action Navigation Buttons */}
@@ -273,6 +285,11 @@ export const AdminDashboardPage: React.FC = () => {
                     </td>
                     <td className="p-3 font-black text-emerald-400 text-sm">
                       ₹{d.amount?.toLocaleString('en-IN')}
+                      {d.isTest && (
+                        <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          TEST
+                        </span>
+                      )}
                     </td>
                     <td className="p-3 font-bold">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] ${

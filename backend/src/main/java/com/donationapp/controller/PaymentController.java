@@ -1,9 +1,11 @@
 package com.donationapp.controller;
 
 import com.donationapp.dto.req.RazorpayOrderRequest;
+import com.donationapp.dto.req.RazorpayQrRequest;
 import com.donationapp.dto.req.RazorpayVerifyRequest;
 import com.donationapp.dto.resp.DonationResponse;
 import com.donationapp.dto.resp.RazorpayOrderResponse;
+import com.donationapp.dto.resp.RazorpayQrResponse;
 import com.donationapp.entity.Donation;
 import com.donationapp.entity.Festival;
 import com.donationapp.repository.DonationRepository;
@@ -16,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +42,36 @@ public class PaymentController {
         this.donationService = donationService;
         this.festivalRepository = festivalRepository;
         this.donationRepository = donationRepository;
+    }
+
+    @GetMapping("/config")
+    public ResponseEntity<?> getPaymentConfig() {
+        Map<String, Object> config = new HashMap<>();
+        config.put("testMode", donationService.isTestMode());
+        config.put("minAmount", donationService.isTestMode() ? donationService.getTestMinAmount() : new BigDecimal("1000.00"));
+        config.put("razorpayKeyId", razorpayService.getRazorpayKeyId());
+        return ResponseEntity.ok(config);
+    }
+
+    @PostMapping("/qr")
+    public ResponseEntity<?> createUpiQr(@Valid @RequestBody RazorpayQrRequest req) {
+        try {
+            donationService.validateDonationAmount(req.getAmount());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage(), "status", "INVALID_AMOUNT"));
+        }
+
+        Festival festival = festivalRepository.findById(req.getFestivalId()).orElse(null);
+        String festivalName = festival != null ? festival.getName() : "Unicode Estates";
+
+        RazorpayQrResponse response = razorpayService.createUpiQr(
+                req.getAmount(),
+                festivalName,
+                req.getDonorName(),
+                donationService.isTestMode()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/create-order")

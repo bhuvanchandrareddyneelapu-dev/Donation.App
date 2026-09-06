@@ -62,6 +62,12 @@ public class AdminDashboardController {
         Long totalDonationsCount = donationRepository.countValidDonationsByFestivalId(festivalId);
         if (totalDonationsCount == null) totalDonationsCount = 0L;
 
+        BigDecimal testCollection = donationRepository.sumTestCollectionByFestivalId(festivalId);
+        if (testCollection == null) testCollection = BigDecimal.ZERO;
+
+        Long testDonationsCount = donationRepository.countTestDonationsByFestivalId(festivalId);
+        if (testDonationsCount == null) testDonationsCount = 0L;
+
         BigDecimal targetAmount = festival != null && festival.getTargetAmount() != null
                 ? festival.getTargetAmount()
                 : BigDecimal.ZERO;
@@ -76,6 +82,9 @@ public class AdminDashboardController {
         stats.put("onlineCollection", onlineCollection);
         stats.put("cashCollection", cashCollection);
         stats.put("totalDonations", totalDonationsCount);
+        stats.put("testCollection", testCollection);
+        stats.put("testDonations", testDonationsCount);
+        stats.put("isTestMode", donationService.isTestMode());
         stats.put("targetAmount", targetAmount);
         stats.put("remainingAmount", remainingAmount);
         stats.put("todayCollection", totalCollection); // Live aggregate

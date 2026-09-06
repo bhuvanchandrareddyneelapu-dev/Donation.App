@@ -20,27 +20,35 @@ public interface DonationRepository extends JpaRepository<Donation, Long> {
     Optional<Donation> findByRazorpayPaymentId(String razorpayPaymentId);
     Optional<Donation> findByTransactionId(String transactionId);
     
-    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false) AND (d.isTest IS NULL OR d.isTest = false)")
     BigDecimal sumTotalCollectionByFestivalId(@Param("festivalId") Long festivalId);
 
-    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND d.paymentType = 'ONLINE' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND d.paymentType = 'ONLINE' AND (d.isReversed IS NULL OR d.isReversed = false) AND (d.isTest IS NULL OR d.isTest = false)")
     BigDecimal calculateTotalOnlineCollection(@Param("festivalId") Long festivalId);
 
-    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND d.paymentType = 'CASH' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND d.paymentType = 'CASH' AND (d.isReversed IS NULL OR d.isReversed = false) AND (d.isTest IS NULL OR d.isTest = false)")
     BigDecimal calculateTotalCashCollection(@Param("festivalId") Long festivalId);
 
-    @Query("SELECT COUNT(d) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    @Query("SELECT COUNT(d) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false) AND (d.isTest IS NULL OR d.isTest = false)")
     Long countValidDonationsByFestivalId(@Param("festivalId") Long festivalId);
 
-    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false) AND d.isTest = true")
+    BigDecimal sumTestCollectionByFestivalId(@Param("festivalId") Long festivalId);
+
+    @Query("SELECT COUNT(d) FROM Donation d WHERE d.festival.id = :festivalId AND d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false) AND d.isTest = true")
+    Long countTestDonationsByFestivalId(@Param("festivalId") Long festivalId);
+
+    @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false) AND (d.isTest IS NULL OR d.isTest = false)")
     BigDecimal sumTotalCollectionAll();
 
-    @Query("SELECT COUNT(DISTINCT d.donorPhone) FROM Donation d WHERE d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false)")
+    @Query("SELECT COUNT(DISTINCT d.donorPhone) FROM Donation d WHERE d.paymentStatus = 'COMPLETED' AND (d.isReversed IS NULL OR d.isReversed = false) AND (d.isTest IS NULL OR d.isTest = false)")
     Long countTotalUniqueDonors();
 
     List<Donation> findByFestivalIdAndIsReversedFalseOrderByIdDesc(Long festivalId);
 
-    List<Donation> findByFestivalIdAndPublicVisibilityTrueAndIsReversedFalseOrderByIdDesc(Long festivalId);
+    List<Donation> findByFestivalIdAndPublicVisibilityTrueAndIsReversedFalseAndIsTestFalseOrderByIdDesc(Long festivalId);
+
+    List<Donation> findByFestivalIdAndIsTestTrueOrderByIdDesc(Long festivalId);
 
     List<Donation> findByDonorPhoneContainingOrDonorNameContainingOrTransactionIdContaining(String phone, String name, String txId);
 }

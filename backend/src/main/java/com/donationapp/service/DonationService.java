@@ -5,6 +5,7 @@ import com.donationapp.dto.req.RazorpayVerifyRequest;
 import com.donationapp.dto.resp.DonationResponse;
 import com.donationapp.entity.*;
 import com.donationapp.repository.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class DonationService {
+
+    @Value("${donationapp.test-mode:false}")
+    private boolean testMode;
+
+    @Value("${donationapp.test-min-amount:10.00}")
+    private BigDecimal testMinAmount;
 
     private final DonationRepository donationRepository;
     private final FestivalRepository festivalRepository;
@@ -42,11 +49,32 @@ public class DonationService {
         this.emailService = emailService;
     }
 
+    public void validateDonationAmount(BigDecimal amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Donation amount is required.");
+        }
+        if (testMode) {
+            if (amount.compareTo(testMinAmount) < 0) {
+                throw new IllegalArgumentException("Minimum test contribution is ₹" + testMinAmount.toPlainString() + ".");
+            }
+        } else {
+            if (amount.compareTo(new BigDecimal("1000")) < 0) {
+                throw new IllegalArgumentException("Minimum contribution is ₹1,000.");
+            }
+        }
+    }
+
+    public boolean isTestMode() {
+        return testMode;
+    }
+
+    public BigDecimal getTestMinAmount() {
+        return testMinAmount;
+    }
+
     @Transactional
     public DonationResponse processVerifiedOnlineDonation(RazorpayVerifyRequest req) {
-        if (req.getAmount() == null || req.getAmount().compareTo(new BigDecimal("1000")) < 0) {
-            throw new RuntimeException("Minimum contribution is ₹1,000.");
-        }
+        validateDonationAmount(req.getAmount());
 
         // Prevent duplicate processing
         Optional<Donation> existing = donationRepository.findByRazorpayPaymentId(req.getRazorpay_payment_id());
@@ -83,12 +111,15 @@ public class DonationService {
         donation.setRazorpaySignature(req.getRazorpay_signature());
         donation.setAnonymous(req.isAnonymous());
         donation.setRemarks(req.getRemarks());
+        donation.setTest(testMode || req.getAmount().compareTo(new BigDecimal("1000")) < 0);
 
         donation = donationRepository.save(donation);
 
-        // Update festival current collection dynamically
-        festival.setCurrentCollection(festival.getCurrentCollection().add(req.getAmount()));
-        festivalRepository.save(festival);
+        // Update festival current collection dynamically if not test
+        if (!donation.isTest()) {
+            festival.setCurrentCollection(festival.getCurrentCollection().add(req.getAmount()));
+            festivalRepository.save(festival);
+        }
 
         // Generate unique format receipt
         String prefix = festival.getReceiptPrefix();
@@ -106,9 +137,7 @@ public class DonationService {
 
     @Transactional
     public DonationResponse processOnlineDonation(DonationCreateRequest req) {
-        if (req.getAmount() == null || req.getAmount().compareTo(new BigDecimal("1000")) < 0) {
-            throw new RuntimeException("Minimum contribution is ₹1,000.");
-        }
+        validateDonationAmount(req.getAmount());
 
         Festival festival = festivalRepository.findById(req.getFestivalId())
                 .orElseThrow(() -> new RuntimeException("Festival not found with ID: " + req.getFestivalId()));
@@ -135,12 +164,15 @@ public class DonationService {
         donation.setTransactionId("PAY_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         donation.setAnonymous(req.isAnonymous());
         donation.setRemarks(req.getRemarks());
+        donation.setTest(testMode || req.getAmount().compareTo(new BigDecimal("1000")) < 0);
 
         donation = donationRepository.save(donation);
 
-        // Update festival collection
-        festival.setCurrentCollection(festival.getCurrentCollection().add(req.getAmount()));
-        festivalRepository.save(festival);
+        // Update festival collection if not test
+        if (!donation.isTest()) {
+            festival.setCurrentCollection(festival.getCurrentCollection().add(req.getAmount()));
+            festivalRepository.save(festival);
+        }
 
         // Generate Receipt
         String receiptNo = "REC-" + System.currentTimeMillis() % 1000000;
@@ -157,9 +189,7 @@ public class DonationService {
 
     @Transactional
     public DonationResponse processCashDonation(DonationCreateRequest req, Long volunteerId) {
-        if (req.getAmount() == null || req.getAmount().compareTo(new BigDecimal("1000")) < 0) {
-            throw new RuntimeException("Minimum contribution is ₹1,000.");
-        }
+        validateDonationAmount(req.getAmount());
 
         Festival festival = festivalRepository.findById(req.getFestivalId())
                 .orElseThrow(() -> new RuntimeException("Festival not found with ID: " + req.getFestivalId()));
@@ -183,12 +213,15 @@ public class DonationService {
         donation.setAnonymous(req.isAnonymous());
         donation.setRemarks(req.getRemarks());
         donation.setRecordedByVolunteer(volunteer);
+        donation.setTest(testMode || req.getAmount().compareTo(new BigDecimal("1000")) < 0);
 
         donation = donationRepository.save(donation);
 
-        // Update festival collection
-        festival.setCurrentCollection(festival.getCurrentCollection().add(req.getAmount()));
-        festivalRepository.save(festival);
+        // Update festival collection if not test
+        if (!donation.isTest()) {
+            festival.setCurrentCollection(festival.getCurrentCollection().add(req.getAmount()));
+            festivalRepository.save(festival);
+        }
 
         // Log Cash Entry for Audit
         CashDonationLog log = new CashDonationLog();
@@ -272,10 +305,19 @@ public class DonationService {
     }
 
     public List<DonationResponse> getPublicDonations(Long festivalId) {
-        return donationRepository.findByFestivalIdAndPublicVisibilityTrueAndIsReversedFalseOrderByIdDesc(festivalId).stream()
+        return donationRepository.findByFestivalIdAndPublicVisibilityTrueAndIsReversedFalseAndIsTestFalseOrderByIdDesc(festivalId).stream()
                 .map(d -> {
                     Receipt r = receiptRepository.findByDonationId(d.getId()).orElse(null);
                     return mapToPublicResponse(d, r);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<DonationResponse> getTestDonations(Long festivalId) {
+        return donationRepository.findByFestivalIdAndIsTestTrueOrderByIdDesc(festivalId).stream()
+                .map(d -> {
+                    Receipt r = receiptRepository.findByDonationId(d.getId()).orElse(null);
+                    return mapToResponse(d, r, null);
                 })
                 .collect(Collectors.toList());
     }
@@ -316,6 +358,7 @@ public class DonationService {
         resp.setReversed(donation.isReversed());
         resp.setReversedBy(donation.getReversedBy());
         resp.setReversalReason(donation.getReversalReason());
+        resp.setTest(donation.isTest());
         resp.setCreatedAt(donation.getCreatedAt());
         return resp;
     }
@@ -351,6 +394,7 @@ public class DonationService {
             resp.setQrCodeHash(receipt.getQrCodeHash());
         }
         resp.setAnonymous(donation.isAnonymous());
+        resp.setTest(donation.isTest());
         resp.setCreatedAt(donation.getCreatedAt());
         return resp;
     }

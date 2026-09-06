@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, ArrowLeft, ShieldCheck, Smartphone, CreditCard, AlertCircle, Lock, CheckCircle2 } from 'lucide-react';
 import { FestivalConfig } from '../../config/festivalConfig';
 import api from '../../services/api';
-import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '../../services/paymentService';
+import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment, getPaymentConfig } from '../../services/paymentService';
 
 interface DonationStepProps {
   config: FestivalConfig;
@@ -26,13 +26,30 @@ export const DonationStep: React.FC<DonationStepProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
-  const presetAmounts = [1000, 2001, 5001, 10000];
+  const [paymentConfig, setPaymentConfig] = useState<{ testMode: boolean; minAmount: number }>({
+    testMode: false,
+    minAmount: 1000,
+  });
+
+  useEffect(() => {
+    getPaymentConfig()
+      .then((cfg) => {
+        setPaymentConfig({ testMode: cfg.testMode, minAmount: cfg.minAmount });
+        if (cfg.testMode && cfg.minAmount) {
+          setAmount(cfg.minAmount);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const presetAmounts = paymentConfig.testMode ? [10, 50, 100, 1000] : [1000, 2001, 5001, 10000];
 
   const handleInitiateRazorpay = async (e: React.FormEvent) => {
     e.preventDefault();
     const finalAmount = customAmount ? parseFloat(customAmount) : amount;
-    if (!finalAmount || finalAmount < 1000) {
-      setErrorMsg('Minimum contribution is ₹1,000.');
+    const min = paymentConfig.minAmount || (paymentConfig.testMode ? 10 : 1000);
+    if (!finalAmount || finalAmount < min) {
+      setErrorMsg(`Minimum contribution is ₹${min.toLocaleString('en-IN')}.`);
       return;
     }
 

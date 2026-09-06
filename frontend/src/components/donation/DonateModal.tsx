@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
-import { X, ShieldCheck, Smartphone, CheckCircle, Download, Send, Sparkles, AlertCircle, Lock, QrCode } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ShieldCheck, Smartphone, CheckCircle, Download, Send, Sparkles, AlertCircle, Lock, QrCode, RefreshCw } from 'lucide-react';
 import { Festival } from '../../types';
 import api from '../../services/api';
-import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '../../services/paymentService';
+import {
+  createRazorpayOrder,
+  openRazorpayCheckout,
+  verifyRazorpayPayment,
+  getPaymentConfig,
+  createBackendRazorpayQr,
+  RazorpayQrResponse,
+} from '../../services/paymentService';
 
 interface DonateModalProps {
   festival: Festival;
@@ -27,21 +34,63 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [receiptData, setReceiptData] = useState<any>(null);
 
-  const presetAmounts = [1000, 2001, 5001, 10000];
+  const [paymentConfig, setPaymentConfig] = useState<{ testMode: boolean; minAmount: number }>({
+    testMode: false,
+    minAmount: 1000,
+  });
+
+  const [qrLoading, setQrLoading] = useState<boolean>(false);
+  const [qrData, setQrData] = useState<RazorpayQrResponse | null>(null);
+
+  useEffect(() => {
+    getPaymentConfig()
+      .then((cfg) => {
+        setPaymentConfig({ testMode: cfg.testMode, minAmount: cfg.minAmount });
+        if (cfg.testMode && cfg.minAmount) {
+          setAmount(cfg.minAmount);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const presetAmounts = paymentConfig.testMode ? [10, 50, 100, 1000] : [1000, 2001, 5001, 10000];
   const finalAmount = customAmount ? parseFloat(customAmount) : amount;
   const nameToUse = isAnonymous ? 'Anonymous Donor' : donorName || 'Devotee';
   const phoneToUse = donorPhone || '+91 9876543210';
   const emailToUse = noEmail ? '' : donorEmail;
 
-  // Real UPI payment URI for native UPI app scanning (GPay, PhonePe, Paytm, BHIM)
-  const upiId = 'unicodeestates@icici';
-  const upiPayUri = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(festival.name)}&am=${finalAmount}&cu=INR&tn=${encodeURIComponent('Ganesh Chaturthi Donation')}`;
-  const upiQrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiPayUri)}`;
+  const fetchBackendQr = async () => {
+    setQrLoading(true);
+    try {
+      const res = await createBackendRazorpayQr({
+        festivalId: festival.id,
+        amount: finalAmount,
+        donorName: nameToUse,
+        donorPhone: phoneToUse,
+        donorEmail: emailToUse,
+        gotram: gotram.trim(),
+        familyDetails: familyDetails.trim(),
+        publicVisibility: publicVisibility,
+        isAnonymous: isAnonymous,
+        remarks: message || 'Digital online contribution',
+      });
+      setQrData(res);
+    } catch (err: any) {
+      console.error('Failed to fetch backend QR:', err);
+      setQrData({
+        enabled: false,
+        message: err?.response?.data?.error || 'Failed to generate payment QR. Please click "Pay securely with Razorpay" below.',
+      });
+    } finally {
+      setQrLoading(false);
+    }
+  };
 
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!finalAmount || finalAmount < 1000) {
-      setErrorMsg('Minimum contribution is ₹1,000.');
+    const min = paymentConfig.minAmount || (paymentConfig.testMode ? 10 : 1000);
+    if (!finalAmount || finalAmount < min) {
+      setErrorMsg(`Minimum contribution is ₹${min.toLocaleString('en-IN')}.`);
       return;
     }
     if (!isAnonymous && !donorName.trim()) {
@@ -59,6 +108,7 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
 
     setErrorMsg('');
     setStep('PAYMENT');
+    fetchBackendQr();
   };
 
   const handleInitiateRazorpayPayment = async () => {
@@ -182,6 +232,18 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
           <h3 className="text-xl font-extrabold leading-tight">🙏 {festival.name}</h3>
           <p className="text-xs text-orange-100 mt-1">{festival.organizer}</p>
         </div>
+
+        {/* Test Mode Banner */}
+        {paymentConfig.testMode && (
+          <div className="bg-amber-500/10 border-b border-amber-500/30 px-6 py-2 flex items-center justify-between text-xs font-black text-amber-400">
+            <span className="flex items-center space-x-1.5">
+              <span>🧪 TEST MODE ACTIVE</span>
+            </span>
+            <span className="text-[11px] font-semibold text-amber-300">
+              Min test donation: ₹{paymentConfig.minAmount} (Isolated test ledger)
+            </span>
+          </div>
+        )}
 
         {/* Error Notification */}
         {errorMsg && (
@@ -380,25 +442,47 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                 )}
               </div>
 
-              {/* Real Scannable UPI QR Code Card */}
+              {/* Real Razorpay / Verified UPI QR Code Card */}
               <div className="p-5 rounded-2xl bg-white text-slate-950 flex flex-col items-center space-y-2 border border-slate-200 shadow-md">
                 <div className="flex items-center space-x-1 text-xs font-black text-orange-600 uppercase tracking-wider">
                   <QrCode className="w-4 h-4" />
-                  <span>Real Scannable UPI QR Code</span>
+                  <span>Scan & Pay via UPI</span>
                 </div>
 
-                <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
-                  <img
-                    src={upiQrImageUrl}
-                    alt="UPI Payment QR Code"
-                    className="w-40 h-40 object-contain rounded-lg"
-                  />
-                </div>
-
-                <p className="text-xs font-bold text-slate-700">Scan with Google Pay, PhonePe, Paytm, or BHIM</p>
-                <div className="text-[11px] font-mono font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-md border border-slate-300">
-                  UPI ID: {upiId}
-                </div>
+                {qrLoading ? (
+                  <div className="w-44 h-44 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 space-y-2">
+                    <RefreshCw className="w-6 h-6 animate-spin text-orange-600" />
+                    <span>Generating Razorpay UPI QR...</span>
+                  </div>
+                ) : qrData?.enabled && qrData?.imageUrl ? (
+                  <>
+                    <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
+                      <img
+                        src={qrData.imageUrl}
+                        alt="Razorpay UPI Payment QR Code"
+                        className="w-44 h-44 object-contain rounded-lg"
+                      />
+                    </div>
+                    <p className="text-xs font-bold text-slate-700">Scan with Google Pay, PhonePe, Paytm, or BHIM</p>
+                    <div className="flex items-center space-x-1.5 text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-md border border-emerald-200">
+                      <span>Amount: ₹{finalAmount.toLocaleString('en-IN')}</span>
+                      {paymentConfig.testMode && <span className="font-bold text-amber-600">(TEST MODE)</span>}
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-2 max-w-xs">
+                    <p className="text-xs text-amber-900 font-semibold leading-relaxed">
+                      {qrData?.message || 'Razorpay UPI QR is not enabled for this account. Enable UPI QR in your Razorpay Dashboard or click below.'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={fetchBackendQr}
+                      className="text-[11px] font-bold text-orange-600 underline hover:text-orange-700"
+                    >
+                      Try Generating QR Again
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}

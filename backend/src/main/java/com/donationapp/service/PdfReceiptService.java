@@ -35,6 +35,14 @@ public class PdfReceiptService {
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
 
+            if (donation.isTest()) {
+                Font testFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, new Color(220, 38, 38));
+                Paragraph testBanner = new Paragraph("*** TEST PAYMENT - NOT A REAL CONTRIBUTION ***", testFont);
+                testBanner.setAlignment(Element.ALIGN_CENTER);
+                testBanner.setSpacingBefore(5);
+                document.add(testBanner);
+            }
+
             Paragraph subTitle = new Paragraph("Digital Transparency & Community Platform | Govt Regd NGO / Trust", subHeaderFont);
             subTitle.setAlignment(Element.ALIGN_CENTER);
             subTitle.setSpacingAfter(20);

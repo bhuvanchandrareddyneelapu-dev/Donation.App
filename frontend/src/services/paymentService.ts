@@ -76,6 +76,47 @@ export const verifyRazorpayPayment = async (payload: VerifyPaymentPayload) => {
   return response.data;
 };
 
+export interface PaymentConfigResponse {
+  testMode: boolean;
+  minAmount: number;
+  razorpayKeyId: string;
+}
+
+export interface RazorpayQrPayload {
+  festivalId: number;
+  amount: number;
+  donorName?: string;
+  donorPhone?: string;
+  donorEmail?: string;
+  gotram?: string;
+  familyDetails?: string;
+  publicVisibility?: boolean;
+  isAnonymous?: boolean;
+  remarks?: string;
+}
+
+export interface RazorpayQrResponse {
+  qrId?: string;
+  imageUrl?: string;
+  paymentUrl?: string;
+  amount?: number;
+  expiresAt?: number;
+  status?: string;
+  enabled: boolean;
+  isTestMode?: boolean;
+  message?: string;
+}
+
+export const getPaymentConfig = async (): Promise<PaymentConfigResponse> => {
+  const response = await api.get('/payments/config');
+  return response.data;
+};
+
+export const createBackendRazorpayQr = async (payload: RazorpayQrPayload): Promise<RazorpayQrResponse> => {
+  const response = await api.post('/payments/qr', payload);
+  return response.data;
+};
+
 export interface StartPaymentOptions {
   orderData: RazorpayOrderResponse;
   festivalName: string;

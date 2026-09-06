@@ -30,6 +30,7 @@ public class DonationResponse {
     private String reversedBy;
     private LocalDateTime reversedAt;
     private String reversalReason;
+    private boolean isTest = false;
     private LocalDateTime createdAt;
 
     public Long getId() { return id; }
@@ -103,4 +104,7 @@ public class DonationResponse {
 
     public String getReversalReason() { return reversalReason; }
     public void setReversalReason(String reversalReason) { this.reversalReason = reversalReason; }
+
+    public boolean isTest() { return isTest; }
+    public void setTest(boolean test) { isTest = test; }
 }
