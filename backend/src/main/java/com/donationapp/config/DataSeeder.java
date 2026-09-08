@@ -3,6 +3,7 @@ package com.donationapp.config;
 import com.donationapp.entity.*;
 import com.donationapp.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -27,13 +28,15 @@ public class DataSeeder implements CommandLineRunner {
     private final FestivalScheduleRepository scheduleRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private final JdbcTemplate jdbcTemplate;
+
     public DataSeeder(UserRepository userRepository, OrganizationRepository organizationRepository,
                       FestivalRepository festivalRepository, DonationRepository donationRepository,
                       CashDonationLogRepository cashDonationLogRepository, ReceiptRepository receiptRepository,
                       ExpenseRepository expenseRepository, ExpenseProofRepository expenseProofRepository,
                       VolunteerRepository volunteerRepository, CommunityPostRepository communityPostRepository,
                       PostCommentRepository postCommentRepository, FestivalScheduleRepository scheduleRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder, org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
         this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
         this.festivalRepository = festivalRepository;
@@ -47,10 +50,38 @@ public class DataSeeder implements CommandLineRunner {
         this.postCommentRepository = postCommentRepository;
         this.scheduleRepository = scheduleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void run(String... args) throws Exception {
+        try {
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS gotram VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS family_details VARCHAR(500)");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS public_visibility BOOLEAN DEFAULT TRUE");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS is_reversed BOOLEAN DEFAULT FALSE");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS reversed_by VARCHAR(255)");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS reversed_at TIMESTAMP");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS reversal_reason VARCHAR(500)");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP");
+            jdbcTemplate.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS is_test BOOLEAN DEFAULT FALSE");
+
+            jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS donation_audit_log (" +
+                "id BIGSERIAL PRIMARY KEY, " +
+                "donation_id BIGINT NOT NULL, " +
+                "action VARCHAR(50) NOT NULL, " +
+                "old_amount NUMERIC(12,2), " +
+                "new_amount NUMERIC(12,2), " +
+                "reason VARCHAR(500), " +
+                "performed_by VARCHAR(255) NOT NULL, " +
+                "performed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+
+            jdbcTemplate.execute("DELETE FROM donations WHERE festival_id = 1 AND id = 1 AND donor_name = 'Priya Sundaram'");
+            jdbcTemplate.execute("UPDATE festivals SET current_collection = 0.00, target_amount = 0.00 WHERE id = 1");
+        } catch (Exception e) {
+            System.err.println("Schema DDL execution notice: " + e.getMessage());
+        }
+
         try {
             if (userRepository.count() > 0) {
                 return; // Seed data already loaded
