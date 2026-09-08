@@ -72,6 +72,7 @@ public class Donation {
     @Column(columnDefinition = "TEXT")
     private String gatewayResponse;
 
+    @Column(name = "is_anonymous")
     private boolean isAnonymous = false;
 
     private String remarks;
@@ -82,14 +83,17 @@ public class Donation {
 
     private String gotram;
     private String familyDetails;
+
+    @Column(name = "public_visibility")
     private boolean publicVisibility = true;
 
+    @Column(name = "is_reversed")
     private boolean isReversed = false;
     private String reversedBy;
     private LocalDateTime reversedAt;
     private String reversalReason;
 
-    @Column(nullable = false)
+    @Column(name = "is_test", nullable = false)
     private boolean isTest = false;
 
     @Column(nullable = false, updatable = false)
