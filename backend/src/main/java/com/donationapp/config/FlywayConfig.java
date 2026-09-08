@@ -31,21 +31,23 @@ public class FlywayConfig {
                     stmt.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP");
                     stmt.execute("ALTER TABLE donations ADD COLUMN IF NOT EXISTS is_test BOOLEAN DEFAULT FALSE");
 
-                    stmt.execute("CREATE TABLE IF NOT EXISTS donation_audit_log (" +
-                        "id BIGSERIAL PRIMARY KEY, " +
-                        "donation_id BIGINT NOT NULL, " +
-                        "action VARCHAR(50) NOT NULL, " +
-                        "old_amount NUMERIC(12,2), " +
-                        "new_amount NUMERIC(12,2), " +
-                        "reason VARCHAR(500), " +
-                        "performed_by VARCHAR(255) NOT NULL, " +
-                        "performed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+                    try {
+                        stmt.execute("CREATE TABLE IF NOT EXISTS donation_audit_log (" +
+                            "id BIGSERIAL PRIMARY KEY, " +
+                            "donation_id BIGINT NOT NULL, " +
+                            "action VARCHAR(50) NOT NULL, " +
+                            "old_amount NUMERIC(12,2), " +
+                            "new_amount NUMERIC(12,2), " +
+                            "reason VARCHAR(500), " +
+                            "performed_by VARCHAR(255) NOT NULL, " +
+                            "performed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+                    } catch (Exception ignored) {}
 
-                    stmt.execute("DELETE FROM receipts WHERE donation_id IN (1, 2)");
-                    stmt.execute("DELETE FROM cash_donation_logs WHERE donation_id IN (1, 2)");
-                    stmt.execute("DELETE FROM donation_audit_log WHERE donation_id IN (1, 2)");
-                    stmt.execute("DELETE FROM donations WHERE festival_id = 1 AND id IN (1, 2) AND donor_name IN ('Priya Sundaram', 'Ramesh Chandran & Family')");
-                    stmt.execute("UPDATE festivals SET target_amount = 1252.00, current_collection = 1001.00 WHERE id = 1");
+                    try { stmt.execute("DELETE FROM receipts WHERE donation_id IN (1, 2)"); } catch (Exception ignored) {}
+                    try { stmt.execute("DELETE FROM cash_donation_logs WHERE donation_id IN (1, 2)"); } catch (Exception ignored) {}
+                    try { stmt.execute("DELETE FROM donation_audit_log WHERE donation_id IN (1, 2)"); } catch (Exception ignored) {}
+                    try { stmt.execute("DELETE FROM donations WHERE festival_id = 1 AND id IN (1, 2) AND donor_name IN ('Priya Sundaram', 'Ramesh Chandran & Family')"); } catch (Exception ignored) {}
+                    try { stmt.execute("UPDATE festivals SET target_amount = 1252.00, current_collection = 1001.00 WHERE id = 1"); } catch (Exception ignored) {}
                 } catch (Exception e) {
                     System.err.println("JDBC DDL notice: " + e.getMessage());
                 }
