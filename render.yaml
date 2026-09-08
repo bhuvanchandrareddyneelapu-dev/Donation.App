@@ -9,3 +9,9 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+  - type: web
+    name: donation-app-backend
+    env: docker
+    rootDir: backend
+    dockerfilePath: Dockerfile
