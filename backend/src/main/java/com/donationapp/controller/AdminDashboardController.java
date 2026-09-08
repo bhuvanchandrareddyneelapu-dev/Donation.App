@@ -68,9 +68,9 @@ public class AdminDashboardController {
         Long testDonationsCount = donationRepository.countTestDonationsByFestivalId(festivalId);
         if (testDonationsCount == null) testDonationsCount = 0L;
 
-        BigDecimal targetAmount = festival != null && festival.getTargetAmount() != null
-                ? festival.getTargetAmount()
-                : BigDecimal.ZERO;
+        BigDecimal targetAmount = totalCollection.compareTo(BigDecimal.ZERO) == 0
+                ? BigDecimal.ZERO
+                : totalCollection.multiply(new BigDecimal("1.25")).setScale(0, java.math.RoundingMode.CEILING);
 
         BigDecimal remainingAmount = targetAmount.subtract(totalCollection);
         if (remainingAmount.compareTo(BigDecimal.ZERO) < 0) remainingAmount = BigDecimal.ZERO;
@@ -106,7 +106,7 @@ public class AdminDashboardController {
     }
 
     @PostMapping("/donations/{id}/reverse")
-    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<?> reverseDonation(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
@@ -114,7 +114,7 @@ public class AdminDashboardController {
         String reason = body.getOrDefault("reason", "Administrative correction");
         String username = auth != null ? auth.getName() : "Admin";
 
-        DonationResponse resp = donationService.reverseDonation(id, reason, username, "HEAD");
+        DonationResponse resp = donationService.reverseDonation(id, reason, username, "SUPER_ADMIN");
         return ResponseEntity.ok(resp);
     }
 
@@ -126,7 +126,7 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/audit-logs")
-    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<AuditLog>> getAuditLogs() {
         return ResponseEntity.ok(auditLogRepository.findAll());
     }

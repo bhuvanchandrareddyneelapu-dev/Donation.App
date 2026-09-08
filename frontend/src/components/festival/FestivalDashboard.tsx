@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sparkles, Heart, Bell, Calendar, Flame, Waves, Clock, MapPin, CheckCircle2, ArrowRight, ShieldCheck, Utensils, Music, Megaphone, Flower2 } from 'lucide-react';
 import { FestivalConfig } from '../../config/festivalConfig';
 import { FestivalCountdown } from './FestivalCountdown';
+import { CollectionOverviewCard } from './CollectionOverviewCard';
+import { SuperAdminControlPanel } from '../admin/SuperAdminControlPanel';
 
 interface FestivalDashboardProps {
   config: FestivalConfig;
@@ -14,6 +16,7 @@ export const FestivalDashboard: React.FC<FestivalDashboardProps> = ({
   onNavigateTo,
   onOpenNimajjan,
 }) => {
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const ganeshImg = config.images?.ganeshIdol || config.idolImageUrl;
   const latestNotifications = config.notifications.slice(0, 3);
 
@@ -85,7 +88,20 @@ export const FestivalDashboard: React.FC<FestivalDashboardProps> = ({
         </div>
       </div>
 
-      {/* 2. LIVE COUNTDOWN TIMER */}
+      {/* 2. LIVE DATABASE COLLECTION SUMMARY CARD */}
+      <CollectionOverviewCard
+        festivalId={1}
+        refreshTrigger={refreshTrigger}
+        organizerName={config.organizer}
+      />
+
+      {/* 3. IN-APP SUPER ADMIN CONTROLS (Only visible to authenticated Super Admin) */}
+      <SuperAdminControlPanel
+        festivalId={1}
+        onMutationSuccess={() => setRefreshTrigger((prev) => prev + 1)}
+      />
+
+      {/* 4. LIVE COUNTDOWN TIMER */}
       <FestivalCountdown targetDateISO={config.sthapanaDateISO || '2026-09-14'} />
 
       {/* 3. QUICK ACTIONS MOBILE-FRIENDLY GRID */}

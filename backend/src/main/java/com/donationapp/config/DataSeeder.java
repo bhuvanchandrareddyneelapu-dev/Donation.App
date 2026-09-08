@@ -77,15 +77,15 @@ public class DataSeeder implements CommandLineRunner {
             // 3. Create Ganesh Chaturthi & Dasara Festivals
             Festival ganesh = new Festival();
             ganesh.setOrganization(ganeshOrg);
-            ganesh.setName("Grand Ganesh Chaturthi Mahotsav 2026");
+            ganesh.setName("Unicode Estates Ganesh Chaturthi Celebrations 2026");
             ganesh.setFestivalType(Festival.FestivalType.GANESH_CHATURTHI);
-            ganesh.setBannerUrl("https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=1200");
-            ganesh.setIdolImageUrl("https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=800");
-            ganesh.setDescription("Celebrating 92 years of divine grand Ganeshotsav with 24x7 Mahaprasadam, free medical camps, and community blood donation drives.");
-            ganesh.setVenue("Lalbaug Ground, Mumbai");
-            ganesh.setOrganizer("Lalbaugcha Raja Executive Committee");
-            ganesh.setTargetAmount(new BigDecimal("5000000.00")); // ₹50 Lakhs
-            ganesh.setCurrentCollection(new BigDecimal("3450000.00"));
+            ganesh.setBannerUrl("/assets/images/unicode-estates-ganesh-idol.png");
+            ganesh.setIdolImageUrl("/assets/images/unicode-estates-ganesh-idol.png");
+            ganesh.setDescription("Come together with our Unicode Estates community to celebrate Ganpati Bappa with devotion, joy, togetherness and new beginnings.");
+            ganesh.setVenue("Unicode Estates");
+            ganesh.setOrganizer("Unicode Estates Cultural & Festival Committee");
+            ganesh.setTargetAmount(BigDecimal.ZERO);
+            ganesh.setCurrentCollection(BigDecimal.ZERO);
             ganesh.setInstallationDate(LocalDate.of(2026, 9, 14));
             ganesh.setImmersionDate(LocalDate.of(2026, 9, 24));
             ganesh.setQrCodeUrl("https://donation.app/qr/festivals/1");

@@ -1,9 +1,13 @@
 package com.donationapp.service;
 
+import com.donationapp.dto.resp.CollectionSummaryResponse;
 import com.donationapp.entity.Festival;
+import com.donationapp.repository.DonationRepository;
 import com.donationapp.repository.FestivalRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,9 +15,11 @@ import java.util.Optional;
 public class FestivalService {
 
     private final FestivalRepository festivalRepository;
+    private final DonationRepository donationRepository;
 
-    public FestivalService(FestivalRepository festivalRepository) {
+    public FestivalService(FestivalRepository festivalRepository, DonationRepository donationRepository) {
         this.festivalRepository = festivalRepository;
+        this.donationRepository = donationRepository;
     }
 
     public List<Festival> getAllFestivals() {
@@ -26,6 +32,37 @@ public class FestivalService {
 
     public Optional<Festival> getFestivalById(Long id) {
         return festivalRepository.findById(id);
+    }
+
+    public CollectionSummaryResponse getCollectionSummary(Long festivalId) {
+        BigDecimal collected = donationRepository.sumTotalCollectionByFestivalId(festivalId);
+        if (collected == null) {
+            collected = BigDecimal.ZERO;
+        }
+
+        // Dynamic Target Rule: target = collected * 1.25 (rounded to nearest whole rupee)
+        BigDecimal target;
+        if (collected.compareTo(BigDecimal.ZERO) == 0) {
+            target = BigDecimal.ZERO;
+        } else {
+            target = collected.multiply(new BigDecimal("1.25")).setScale(0, RoundingMode.CEILING);
+        }
+
+        BigDecimal remaining = target.subtract(collected);
+        if (remaining.compareTo(BigDecimal.ZERO) < 0) {
+            remaining = BigDecimal.ZERO;
+        }
+
+        Double percentage = 0.0;
+        if (target.compareTo(BigDecimal.ZERO) > 0) {
+            percentage = collected.divide(target, 4, RoundingMode.HALF_UP).doubleValue() * 100.0;
+            percentage = BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue();
+        }
+
+        Long count = donationRepository.countValidDonationsByFestivalId(festivalId);
+        if (count == null) count = 0L;
+
+        return new CollectionSummaryResponse(festivalId, collected, target, remaining, percentage, count);
     }
 
     public Festival createFestival(Festival festival) {
@@ -50,3 +87,4 @@ public class FestivalService {
         }).orElseThrow(() -> new RuntimeException("Festival not found with id: " + id));
     }
 }
+

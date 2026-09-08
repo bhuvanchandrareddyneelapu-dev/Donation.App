@@ -36,7 +36,6 @@ public class RazorpayVerifyRequest {
     private boolean publicVisibility = true;
 
     @NotNull(message = "Donation amount is required")
-    @DecimalMin(value = "1000.0", message = "Minimum contribution is ₹1,000.")
     private BigDecimal amount;
 
     private Festival.FestivalType purpose;

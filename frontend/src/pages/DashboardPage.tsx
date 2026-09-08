@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, FileText, Sparkles } from 'lucide-react';
 import { CashDonationModal } from '../components/volunteer/CashDonationModal';
 import { ReportsModal } from '../components/reports/ReportsModal';
+import { CollectionOverviewCard } from '../components/festival/CollectionOverviewCard';
+import { SuperAdminControlPanel } from '../components/admin/SuperAdminControlPanel';
 import { Festival } from '../types';
 
 export const DashboardPage: React.FC = () => {
@@ -18,8 +20,8 @@ export const DashboardPage: React.FC = () => {
     bannerUrl: 'https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=800',
     description: 'Lalbaugcha Raja Mahotsav',
     venue: 'Lalbaug Ground, Mumbai',
-    targetAmount: 5000000,
-    currentCollection: 3450000,
+    targetAmount: 0,
+    currentCollection: 0,
     active: true,
   };
 
@@ -130,20 +132,8 @@ export const DashboardPage: React.FC = () => {
         {/* Tab 1: Overview */}
         {activeTab === 'OVERVIEW' && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                <span className="text-xs text-slate-400 font-bold uppercase">Online Collection (Razorpay/UPI)</span>
-                <div className="text-2xl font-black text-emerald-400 mt-2">₹28,50,000</div>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                <span className="text-xs text-slate-400 font-bold uppercase">Cash Collection (On-Ground)</span>
-                <div className="text-2xl font-black text-amber-400 mt-2">₹6,00,000</div>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                <span className="text-xs text-slate-400 font-bold uppercase">Verified Cash Entries</span>
-                <div className="text-2xl font-black text-orange-400 mt-2">142 Entries</div>
-              </div>
-            </div>
+            <CollectionOverviewCard festivalId={1} />
+            <SuperAdminControlPanel festivalId={1} />
 
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
               <h3 className="text-lg font-bold text-white mb-4">Assigned Festival & Counter Details</h3>

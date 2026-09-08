@@ -435,55 +435,54 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                 </div>
                 <div className="text-xs text-slate-400">Donor: {isAnonymous ? 'Anonymous' : donorName || 'Devotee'}</div>
                 {donorEmail && !noEmail && (
-                  <div className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
+                  <div className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1 pt-0.5">
                     <Send className="w-3 h-3" />
                     <span>PDF Receipt will be emailed to {donorEmail}</span>
                   </div>
                 )}
               </div>
 
-              {/* Real Razorpay / Verified UPI QR Code Card */}
-              <div className="p-5 rounded-2xl bg-white text-slate-950 flex flex-col items-center space-y-2 border border-slate-200 shadow-md">
-                <div className="flex items-center space-x-1 text-xs font-black text-orange-600 uppercase tracking-wider">
-                  <QrCode className="w-4 h-4" />
-                  <span>Scan & Pay via UPI</span>
+              {/* Real Razorpay / Verified UPI QR Code Section */}
+              {qrLoading ? (
+                <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center space-y-3">
+                  <RefreshCw className="w-7 h-7 animate-spin text-orange-500" />
+                  <span className="text-xs font-semibold text-slate-400">Checking UPI QR Availability...</span>
                 </div>
+              ) : qrData?.enabled && qrData?.imageUrl ? (
+                /* Genuine Razorpay UPI QR Display */
+                <div className="p-5 rounded-2xl bg-white text-slate-950 flex flex-col items-center space-y-2.5 border border-slate-200 shadow-md">
+                  <div className="flex items-center space-x-1.5 text-xs font-black text-orange-600 uppercase tracking-wider">
+                    <QrCode className="w-4 h-4" />
+                    <span>Scan & Pay via Genuine Razorpay UPI QR</span>
+                  </div>
 
-                {qrLoading ? (
-                  <div className="w-44 h-44 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 space-y-2">
-                    <RefreshCw className="w-6 h-6 animate-spin text-orange-600" />
-                    <span>Generating Razorpay UPI QR...</span>
+                  <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
+                    <img
+                      src={qrData.imageUrl}
+                      alt="Genuine Razorpay UPI Payment QR Code"
+                      className="w-48 h-48 object-contain rounded-lg"
+                    />
                   </div>
-                ) : qrData?.enabled && qrData?.imageUrl ? (
-                  <>
-                    <div className="p-2 bg-slate-50 rounded-xl border border-slate-200 shadow-inner">
-                      <img
-                        src={qrData.imageUrl}
-                        alt="Razorpay UPI Payment QR Code"
-                        className="w-44 h-44 object-contain rounded-lg"
-                      />
-                    </div>
-                    <p className="text-xs font-bold text-slate-700">Scan with Google Pay, PhonePe, Paytm, or BHIM</p>
-                    <div className="flex items-center space-x-1.5 text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-md border border-emerald-200">
-                      <span>Amount: ₹{finalAmount.toLocaleString('en-IN')}</span>
-                      {paymentConfig.testMode && <span className="font-bold text-amber-600">(TEST MODE)</span>}
-                    </div>
-                  </>
-                ) : (
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-2 max-w-xs">
-                    <p className="text-xs text-amber-900 font-semibold leading-relaxed">
-                      {qrData?.message || 'Razorpay UPI QR is not enabled for this account. Enable UPI QR in your Razorpay Dashboard or click below.'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={fetchBackendQr}
-                      className="text-[11px] font-bold text-orange-600 underline hover:text-orange-700"
-                    >
-                      Try Generating QR Again
-                    </button>
+
+                  <p className="text-xs font-bold text-slate-700">Scan with Google Pay, PhonePe, Paytm, or BHIM</p>
+
+                  <div className="flex items-center space-x-1.5 text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-3.5 py-1.5 rounded-lg border border-emerald-200">
+                    <span>Exact Amount: ₹{finalAmount.toLocaleString('en-IN')}</span>
+                    {paymentConfig.testMode && <span className="font-extrabold text-amber-600">(TEST MODE)</span>}
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                /* UPI QR Unavailable Banner */
+                <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2">
+                  <div className="flex items-center space-x-2 text-amber-400 font-extrabold text-xs">
+                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>UPI QR payment is currently unavailable.</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed pl-6">
+                    Dynamic merchant QR is not enabled for this account. You can pay instantly using Google Pay, PhonePe, Paytm, BHIM UPI, Credit/Debit Cards, or NetBanking below.
+                  </p>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-3">
@@ -491,14 +490,14 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
                   type="button"
                   disabled={loading}
                   onClick={handleInitiateRazorpayPayment}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:brightness-110 text-white font-black text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center space-x-2 transition"
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:brightness-110 active:scale-95 text-white font-black text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50"
                 >
                   {loading ? (
                     <span>Opening Razorpay Gateway...</span>
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      <span>Confirm & Pay via Razorpay Checkout</span>
+                      <span>Pay securely with Razorpay</span>
                     </>
                   )}
                 </button>

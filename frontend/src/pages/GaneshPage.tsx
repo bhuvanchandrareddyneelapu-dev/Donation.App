@@ -3,6 +3,8 @@ import { Heart, Calendar, MapPin, ShieldCheck, Users, Image as ImageIcon, Plus, 
 import { DonateModal } from '../components/donation/DonateModal';
 import { CashDonationModal } from '../components/volunteer/CashDonationModal';
 import { ExpenseChart } from '../components/transparency/ExpenseChart';
+import { CollectionOverviewCard } from '../components/festival/CollectionOverviewCard';
+import { SuperAdminControlPanel } from '../components/admin/SuperAdminControlPanel';
 import { Festival } from '../types';
 
 export const GaneshPage: React.FC = () => {
@@ -19,8 +21,8 @@ export const GaneshPage: React.FC = () => {
     description: 'Come together with our Unicode Estates community to celebrate Ganpati Bappa with devotion, joy, togetherness and new beginnings.',
     venue: 'Unicode Estates',
     organizer: 'Unicode Estates Cultural & Festival Committee',
-    targetAmount: 500000,
-    currentCollection: 345000,
+    targetAmount: 0,
+    currentCollection: 0,
     installationDate: '2026-09-14',
     immersionDate: '2026-09-24',
     active: true,
@@ -117,43 +119,10 @@ export const GaneshPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         
-        {/* Festival Summary Progress Bar Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 lg:p-8 mb-10 shadow-2xl">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-              <span className="text-xs font-black text-orange-400 uppercase tracking-widest">Committee: {ganeshFestival.organizer}</span>
-              <h2 className="text-2xl font-extrabold text-white mt-0.5">Donation & Collection Overview</h2>
-            </div>
-            <div className="flex items-center space-x-2 text-xs text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-800/50 px-3.5 py-2 rounded-xl">
-              <ShieldCheck className="w-4 h-4" />
-              <span>100% Verifiable Public Audit</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-            <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800">
-              <span className="text-xs text-slate-400 font-bold">Target Amount</span>
-              <div className="text-2xl font-black text-white mt-1">₹50,00,000</div>
-            </div>
-            <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800">
-              <span className="text-xs text-slate-400 font-bold">Collected Amount</span>
-              <div className="text-2xl font-black text-emerald-400 mt-1">₹34,50,000</div>
-            </div>
-            <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800">
-              <span className="text-xs text-slate-400 font-bold">Remaining Amount</span>
-              <div className="text-2xl font-black text-orange-400 mt-1">₹15,50,000</div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-bold">
-              <span className="text-slate-400">Festival Target Completion</span>
-              <span className="text-orange-400">{pct}% Achieved</span>
-            </div>
-            <div className="w-full h-3.5 rounded-full bg-slate-950 overflow-hidden p-0.5 border border-slate-800">
-              <div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400" style={{ width: `${pct}%` }} />
-            </div>
-          </div>
+        {/* Live Database Collection Overview Card */}
+        <div className="mb-10 space-y-8">
+          <CollectionOverviewCard festivalId={1} organizerName={ganeshFestival.organizer} />
+          <SuperAdminControlPanel festivalId={1} />
         </div>
 
         {/* Sub-Navigation Tabs */}

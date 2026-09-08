@@ -50,10 +50,10 @@ public class DonationServiceTest {
     void setUp() {
         festival = new Festival();
         festival.setId(1L);
-        festival.setName("Grand Ganesh Chaturthi Mahotsav 2026");
+        festival.setName("Unicode Estates Ganesh Chaturthi Celebrations 2026");
         festival.setFestivalType(Festival.FestivalType.GANESH_CHATURTHI);
-        festival.setTargetAmount(new BigDecimal("5000000.00"));
-        festival.setCurrentCollection(new BigDecimal("100000.00"));
+        festival.setTargetAmount(BigDecimal.ZERO);
+        festival.setCurrentCollection(BigDecimal.ZERO);
     }
 
     @Test

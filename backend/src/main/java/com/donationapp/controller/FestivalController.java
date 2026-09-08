@@ -1,5 +1,6 @@
 package com.donationapp.controller;
 
+import com.donationapp.dto.resp.CollectionSummaryResponse;
 import com.donationapp.entity.Festival;
 import com.donationapp.service.FestivalService;
 import org.springframework.http.ResponseEntity;
@@ -36,13 +37,21 @@ public class FestivalController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/collection-summary")
+    public ResponseEntity<CollectionSummaryResponse> getCollectionSummary(@PathVariable Long id) {
+        return ResponseEntity.ok(festivalService.getCollectionSummary(id));
+    }
+
     @PostMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Festival> createFestival(@RequestBody Festival festival) {
         return ResponseEntity.ok(festivalService.createFestival(festival));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Festival> updateFestival(@PathVariable Long id, @RequestBody Festival festival) {
         return ResponseEntity.ok(festivalService.updateFestival(id, festival));
     }
 }
+

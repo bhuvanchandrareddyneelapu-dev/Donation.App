@@ -45,24 +45,24 @@ public class TransparencyServiceTest {
     void setUp() {
         festival = new Festival();
         festival.setId(1L);
-        festival.setName("Grand Ganesh Chaturthi Mahotsav 2026");
-        festival.setTargetAmount(new BigDecimal("5000000.00"));
-        festival.setCurrentCollection(new BigDecimal("3450000.00"));
+        festival.setName("Unicode Estates Ganesh Chaturthi Celebrations 2026");
+        festival.setTargetAmount(new BigDecimal("25000.00"));
+        festival.setCurrentCollection(new BigDecimal("20000.00"));
     }
 
     @Test
     void testGetFestivalTransparencySummary_Success() {
         when(festivalRepository.findById(1L)).thenReturn(Optional.of(festival));
-        when(expenseRepository.sumTotalExpenseByFestivalId(1L)).thenReturn(new BigDecimal("1500000.00"));
-        when(donationRepository.sumTotalCollectionByFestivalId(1L)).thenReturn(new BigDecimal("3450000.00"));
+        when(expenseRepository.sumTotalExpenseByFestivalId(1L)).thenReturn(new BigDecimal("15000.00"));
+        when(donationRepository.sumTotalCollectionByFestivalId(1L)).thenReturn(new BigDecimal("20000.00"));
         when(expenseRepository.findByFestivalId(1L)).thenReturn(List.of());
 
         Map<String, Object> summary = transparencyService.getFestivalTransparencySummary(1L);
 
         assertNotNull(summary);
-        assertEquals("Grand Ganesh Chaturthi Mahotsav 2026", summary.get("festivalName"));
-        assertEquals(new BigDecimal("3450000.00"), summary.get("totalCollection"));
-        assertEquals(new BigDecimal("1500000.00"), summary.get("totalExpenses"));
-        assertEquals(new BigDecimal("1950000.00"), summary.get("netBalance"));
+        assertEquals("Unicode Estates Ganesh Chaturthi Celebrations 2026", summary.get("festivalName"));
+        assertEquals(new BigDecimal("20000.00"), summary.get("totalCollection"));
+        assertEquals(new BigDecimal("15000.00"), summary.get("totalExpenses"));
+        assertEquals(new BigDecimal("5000.00"), summary.get("netBalance"));
     }
 }

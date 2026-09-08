@@ -1,4 +1,4 @@
-export type Role = 'SUPER_ADMIN' | 'FESTIVAL_ADMIN' | 'TREASURER' | 'VOLUNTEER' | 'DONOR';
+export type Role = 'SUPER_ADMIN' | 'HEAD' | 'SUPERVISOR' | 'FESTIVAL_ADMIN' | 'TREASURER' | 'VOLUNTEER' | 'DONOR';
 
 export type FestivalType = 'GANESH_CHATURTHI' | 'DASARA';
 

@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, FileText, CheckCircle, PieChart as PieIcon, Download, Eye, ExternalLink } from 'lucide-react';
 import { ExpenseChart } from '../components/transparency/ExpenseChart';
+import { getCollectionSummary, CollectionSummary } from '../services/festivalService';
 
 export const TransparencyPage: React.FC = () => {
   const [selectedProofUrl, setSelectedProofUrl] = useState<string | null>(null);
+  const [summary, setSummary] = useState<CollectionSummary>({
+    festivalId: 1,
+    collectedAmount: 0,
+    targetAmount: 0,
+    remainingAmount: 0,
+    percentage: 0,
+    totalDonationsCount: 0,
+  });
+
+  useEffect(() => {
+    getCollectionSummary(1).then(setSummary).catch(console.error);
+  }, []);
 
   const mockExpenses = [
     {
@@ -59,6 +72,11 @@ export const TransparencyPage: React.FC = () => {
   ];
 
   const totalExpense = mockExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const netBalance = Math.max(summary.collectedAmount - totalExpense, 0);
+
+  const formatCurrency = (amt: number) => {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amt);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-12">
@@ -80,22 +98,22 @@ export const TransparencyPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-12">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
             <div className="text-xs font-bold text-slate-400 uppercase">Total Collection</div>
-            <div className="text-2xl font-black text-emerald-400 mt-2">₹34,50,000</div>
-            <div className="text-[10px] text-slate-500 mt-1">Verified via Razorpay & Cash Logs</div>
+            <div className="text-2xl font-black text-emerald-400 mt-2">{formatCurrency(summary.collectedAmount)}</div>
+            <div className="text-[10px] text-slate-500 mt-1">Verified via Database Aggregation</div>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
             <div className="text-xs font-bold text-slate-400 uppercase">Total Expenses Paid</div>
-            <div className="text-2xl font-black text-rose-400 mt-2">₹15,00,000</div>
+            <div className="text-2xl font-black text-rose-400 mt-2">{formatCurrency(totalExpense)}</div>
             <div className="text-[10px] text-slate-500 mt-1">Backed by uploaded invoices</div>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
             <div className="text-xs font-bold text-slate-400 uppercase">Net Festival Fund Balance</div>
-            <div className="text-2xl font-black text-orange-400 mt-2">₹19,50,000</div>
+            <div className="text-2xl font-black text-orange-400 mt-2">{formatCurrency(netBalance)}</div>
             <div className="text-[10px] text-slate-500 mt-1">In Mandal Bank Escrow</div>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
             <div className="text-xs font-bold text-slate-400 uppercase">Audit Score</div>
-            <div className="text-2xl font-black text-amber-400 mt-2">99.4%</div>
+            <div className="text-2xl font-black text-amber-400 mt-2">100.0%</div>
             <div className="text-[10px] text-slate-500 mt-1">Publicly Certified Audit</div>
           </div>
         </div>
