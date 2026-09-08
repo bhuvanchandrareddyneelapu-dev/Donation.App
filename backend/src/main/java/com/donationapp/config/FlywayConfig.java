@@ -41,8 +41,11 @@ public class FlywayConfig {
                         "performed_by VARCHAR(255) NOT NULL, " +
                         "performed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)");
 
-                    stmt.execute("DELETE FROM donations WHERE festival_id = 1 AND id = 1 AND donor_name = 'Priya Sundaram'");
-                    stmt.execute("UPDATE festivals SET current_collection = 0.00, target_amount = 0.00 WHERE id = 1");
+                    stmt.execute("DELETE FROM receipts WHERE donation_id IN (1, 2)");
+                    stmt.execute("DELETE FROM cash_donation_logs WHERE donation_id IN (1, 2)");
+                    stmt.execute("DELETE FROM donation_audit_log WHERE donation_id IN (1, 2)");
+                    stmt.execute("DELETE FROM donations WHERE festival_id = 1 AND id IN (1, 2) AND donor_name IN ('Priya Sundaram', 'Ramesh Chandran & Family')");
+                    stmt.execute("UPDATE festivals SET target_amount = 1252.00, current_collection = 1001.00 WHERE id = 1");
                 } catch (Exception e) {
                     System.err.println("JDBC DDL notice: " + e.getMessage());
                 }
