@@ -1,7 +1,8 @@
 package com.donationapp.controller;
 
+import com.donationapp.dto.resp.ExpenseProofResponse;
+import com.donationapp.dto.resp.ExpenseResponse;
 import com.donationapp.entity.Expense;
-import com.donationapp.entity.ExpenseProof;
 import com.donationapp.service.TransparencyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,17 +34,17 @@ public class TransparencyController {
     }
 
     @GetMapping("/festival/{festivalId}/expenses")
-    public ResponseEntity<List<Expense>> getExpensesByFestival(@PathVariable Long festivalId) {
+    public ResponseEntity<List<ExpenseResponse>> getExpensesByFestival(@PathVariable Long festivalId) {
         return ResponseEntity.ok(transparencyService.getExpensesByFestival(festivalId));
     }
 
     @GetMapping("/expense/{expenseId}/proofs")
-    public ResponseEntity<List<ExpenseProof>> getProofsByExpense(@PathVariable Long expenseId) {
+    public ResponseEntity<List<ExpenseProofResponse>> getProofsByExpense(@PathVariable Long expenseId) {
         return ResponseEntity.ok(transparencyService.getProofsByExpense(expenseId));
     }
 
     @PostMapping("/expenses")
-    public ResponseEntity<Expense> recordExpense(
+    public ResponseEntity<ExpenseResponse> recordExpense(
             @RequestBody Expense expense,
             @RequestParam(required = false) List<String> proofUrls) {
         return ResponseEntity.ok(transparencyService.recordExpense(expense, proofUrls));

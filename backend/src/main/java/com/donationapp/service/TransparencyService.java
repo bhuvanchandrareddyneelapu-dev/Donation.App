@@ -1,5 +1,7 @@
 package com.donationapp.service;
 
+import com.donationapp.dto.resp.ExpenseProofResponse;
+import com.donationapp.dto.resp.ExpenseResponse;
 import com.donationapp.entity.Expense;
 import com.donationapp.entity.ExpenseProof;
 import com.donationapp.entity.Festival;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TransparencyService {
@@ -30,16 +33,22 @@ public class TransparencyService {
     }
 
     @Transactional(readOnly = true)
-    public List<Expense> getExpensesByFestival(Long festivalId) {
-        return expenseRepository.findByFestivalId(festivalId);
+    public List<ExpenseResponse> getExpensesByFestival(Long festivalId) {
+        return expenseRepository.findByFestivalId(festivalId)
+                .stream()
+                .map(ExpenseResponse::new)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<ExpenseProof> getProofsByExpense(Long expenseId) {
-        return expenseProofRepository.findByExpenseId(expenseId);
+    public List<ExpenseProofResponse> getProofsByExpense(Long expenseId) {
+        return expenseProofRepository.findByExpenseId(expenseId)
+                .stream()
+                .map(ExpenseProofResponse::new)
+                .collect(Collectors.toList());
     }
 
-    public Expense recordExpense(Expense expense, List<String> proofUrls) {
+    public ExpenseResponse recordExpense(Expense expense, List<String> proofUrls) {
         Expense savedExpense = expenseRepository.save(expense);
 
         if (proofUrls != null && !proofUrls.isEmpty()) {
@@ -49,7 +58,7 @@ public class TransparencyService {
             }
         }
 
-        return savedExpense;
+        return new ExpenseResponse(savedExpense);
     }
 
     @Transactional(readOnly = true)
@@ -71,23 +80,25 @@ public class TransparencyService {
 
         // Expense category breakdown for charts
         Map<String, BigDecimal> categoryBreakdown = new HashMap<>();
+        List<ExpenseResponse> expenseList = new ArrayList<>();
         for (Expense e : expenses) {
             categoryBreakdown.put(
                 e.getCategory().name(),
                 categoryBreakdown.getOrDefault(e.getCategory().name(), BigDecimal.ZERO).add(e.getAmount())
             );
+            expenseList.add(new ExpenseResponse(e));
         }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("festivalId", festival.getId());
-        response.put("festivalName", festival.getName());
-        response.put("targetAmount", festival.getTargetAmount());
+        response.put("festivalId", festival != null ? festival.getId() : festivalId);
+        response.put("festivalName", festival != null ? festival.getName() : "");
+        response.put("targetAmount", targetAmount);
         response.put("totalCollection", totalCollection);
         response.put("totalExpenses", totalExpenses);
         response.put("netBalance", netBalance);
         response.put("remainingTarget", remainingTarget.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : remainingTarget);
         response.put("categoryBreakdown", categoryBreakdown);
-        response.put("expenseList", expenses);
+        response.put("expenseList", expenseList);
 
         return response;
     }
