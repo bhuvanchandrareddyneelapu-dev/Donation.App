@@ -7,7 +7,7 @@ export const CommunityPage: React.FC = () => {
   const [posts, setPosts] = useState([
     {
       id: 1,
-      author: 'Lalbaugcha Raja Executive Committee',
+      author: 'Unicode Estates Executive Committee',
       title: '🚩 Grand Inauguration & Prana Pratishtha Schedule Announced!',
       content: 'We are thrilled to announce that the divine idol installation will commence at 6:00 AM on 14th September 2026. Special VVIP Aarti will be held at 7:30 PM followed by Mahaprasadam distribution. All devotees are cordially invited!',
       mediaUrl: 'https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=800',

@@ -6,6 +6,7 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -14,6 +15,9 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class PdfReceiptService {
+
+    @Value("${donationapp.app-base-url:https://donation-app-frontend-150r.onrender.com}")
+    private String appBaseUrl;
 
     public byte[] generateReceiptPdf(Donation donation, Receipt receipt) {
         Document document = new Document(PageSize.A4, 36, 36, 36, 36);
@@ -53,10 +57,18 @@ public class PdfReceiptService {
             table.setWidthPercentage(100);
             table.setWidths(new float[]{1, 1});
 
+            String orgName = "Unicode Estates, PM Palem";
+            if (donation.getFestival() != null && donation.getFestival().getOrganization() != null) {
+                String fetchedName = donation.getFestival().getOrganization().getName();
+                if (fetchedName != null && !fetchedName.isBlank() && !fetchedName.toLowerCase().contains("lalbaugcha")) {
+                    orgName = fetchedName;
+                }
+            }
+
             addTableCell(table, "Receipt Number:", receipt.getReceiptNumber(), boldBodyFont, bodyFont);
             addTableCell(table, "Date & Time:", donation.getCreatedAt().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm a")), boldBodyFont, bodyFont);
-            addTableCell(table, "Event / Festival:", donation.getFestival().getName(), boldBodyFont, bodyFont);
-            addTableCell(table, "Organization:", donation.getFestival().getOrganization() != null ? donation.getFestival().getOrganization().getName() : "Festival Committee", boldBodyFont, bodyFont);
+            addTableCell(table, "Event / Festival:", donation.getFestival() != null ? donation.getFestival().getName() : "Unicode Estates Ganesh Chaturthi Celebrations 2026", boldBodyFont, bodyFont);
+            addTableCell(table, "Organization:", orgName, boldBodyFont, bodyFont);
             addTableCell(table, "Donor Name:", donation.isAnonymous() ? "Anonymous Donor" : donation.getDonorName(), boldBodyFont, bodyFont);
             if (donation.getGotram() != null && !donation.getGotram().isBlank()) {
                 addTableCell(table, "Gotram:", donation.getGotram(), boldBodyFont, bodyFont);
@@ -65,9 +77,9 @@ public class PdfReceiptService {
                 addTableCell(table, "Family Details:", donation.getFamilyDetails(), boldBodyFont, bodyFont);
             }
             addTableCell(table, "Donor Phone:", donation.getDonorPhone(), boldBodyFont, bodyFont);
-            addTableCell(table, "Donation Purpose:", donation.getPurpose().name(), boldBodyFont, bodyFont);
-            addTableCell(table, "Payment Method:", donation.getPaymentType().name(), boldBodyFont, bodyFont);
-            addTableCell(table, "Verification Status:", donation.getPaymentStatus().name(), boldBodyFont, bodyFont);
+            addTableCell(table, "Donation Purpose:", donation.getPurpose() != null ? donation.getPurpose().name() : "GANESH_CHATURTHI", boldBodyFont, bodyFont);
+            addTableCell(table, "Payment Method:", donation.getPaymentType() != null ? donation.getPaymentType().name() : "CASH", boldBodyFont, bodyFont);
+            addTableCell(table, "Verification Status:", donation.getPaymentStatus() != null ? donation.getPaymentStatus().name() : "COMPLETED", boldBodyFont, bodyFont);
             addTableCell(table, "Transaction / Reference ID:", donation.getTransactionId() != null ? donation.getTransactionId() : "N/A", boldBodyFont, bodyFont);
 
             if (donation.getRecordedByVolunteer() != null) {
@@ -84,7 +96,11 @@ public class PdfReceiptService {
             document.add(amountPara);
 
             // QR Validation Code
-            Paragraph qrInfo = new Paragraph("Verification Hash QR: " + receipt.getQrCodeHash() + "\nVerify authenticity online at https://donation.app/verify/" + receipt.getQrCodeHash(), bodyFont);
+            String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-frontend-150r.onrender.com").replaceAll("/+$", "");
+            String qrHash = receipt.getQrCodeHash() != null ? receipt.getQrCodeHash() : receipt.getReceiptNumber();
+            String verifyUrl = baseUrl + "/verify/" + qrHash;
+
+            Paragraph qrInfo = new Paragraph("Verification Hash QR: " + qrHash + "\nVerify authenticity online at " + verifyUrl, bodyFont);
             qrInfo.setAlignment(Element.ALIGN_CENTER);
             document.add(qrInfo);
 

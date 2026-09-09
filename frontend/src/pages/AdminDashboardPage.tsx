@@ -54,10 +54,11 @@ export const AdminDashboardPage: React.FC = () => {
   const handleResendEmail = async (id: number) => {
     try {
       await api.post(`/admin/donations/${id}/resend-email`);
-      setToastMsg(`PDF receipt email dispatched for Donation #${id}`);
+      setToastMsg('Receipt email sent successfully.');
       setTimeout(() => setToastMsg(''), 4000);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to resend email receipt.');
+      console.error('Failed to resend email receipt:', err);
+      alert('Failed to send receipt email. Please try again.');
     }
   };
 

@@ -15,11 +15,11 @@ export const DashboardPage: React.FC = () => {
 
   const mockFestival: Festival = {
     id: 1,
-    name: 'Grand Ganesh Chaturthi Mahotsav 2026',
+    name: 'Unicode Estates Ganesh Chaturthi 2026',
     festivalType: 'GANESH_CHATURTHI',
     bannerUrl: 'https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=800',
-    description: 'Lalbaugcha Raja Mahotsav',
-    venue: 'Lalbaug Ground, Mumbai',
+    description: 'Unicode Estates Ganesh Chaturthi Celebrations 2026',
+    venue: 'Unicode Estates, PM Palem',
     targetAmount: 0,
     currentCollection: 0,
     active: true,

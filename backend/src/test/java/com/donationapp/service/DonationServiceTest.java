@@ -41,6 +41,9 @@ public class DonationServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private DonationService donationService;
 
@@ -87,5 +90,32 @@ public class DonationServiceTest {
 
         verify(donationRepository, times(1)).save(any(Donation.class));
         verify(festivalRepository, times(1)).save(any(Festival.class));
+    }
+
+    @Test
+    void testResendReceiptEmail_Success() {
+        Donation donation = new Donation();
+        donation.setId(50L);
+        Receipt receipt = new Receipt();
+        receipt.setReceiptNumber("REC-50");
+
+        when(donationRepository.findById(50L)).thenReturn(Optional.of(donation));
+        when(receiptRepository.findByDonationId(50L)).thenReturn(Optional.of(receipt));
+
+        assertDoesNotThrow(() -> donationService.resendReceiptEmail(50L));
+
+        verify(emailService, times(1)).resendDonationReceiptEmail(donation, receipt);
+    }
+
+    @Test
+    void testResendReceiptEmail_ReceiptNotFound_ThrowsException() {
+        Donation donation = new Donation();
+        donation.setId(50L);
+
+        when(donationRepository.findById(50L)).thenReturn(Optional.of(donation));
+        when(receiptRepository.findByDonationId(50L)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> donationService.resendReceiptEmail(50L));
+        assertTrue(ex.getMessage().contains("Receipt not found"));
     }
 }

@@ -428,7 +428,7 @@ public class DonationService {
         Receipt receipt = receiptRepository.findByDonationId(donationId)
                 .orElseThrow(() -> new RuntimeException("Receipt not found for donation: " + donationId));
 
-        emailService.sendDonationReceiptEmail(donation, receipt);
+        emailService.resendDonationReceiptEmail(donation, receipt);
     }
 
     @Transactional(readOnly = true)

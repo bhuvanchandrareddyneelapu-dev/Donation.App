@@ -80,6 +80,7 @@ public class DataSeeder implements CommandLineRunner {
         runDdlQuietly("DELETE FROM donation_audit_log WHERE donation_id IN (1, 2)");
         runDdlQuietly("DELETE FROM donations WHERE festival_id = 1 AND id IN (1, 2) AND donor_name IN ('Priya Sundaram', 'Ramesh Chandran & Family')");
         runDdlQuietly("UPDATE festivals SET target_amount = 1252.00, current_collection = 1001.00 WHERE id = 1");
+        runDdlQuietly("UPDATE organizations SET name = 'Unicode Estates, PM Palem', address = 'Unicode Estates, PM Palem, Visakhapatnam' WHERE id IN (SELECT organization_id FROM festivals WHERE id = 1)");
 
         try {
             ensureSeedUserPassword("superadmin@donation.app", "admin123", "Vikramaditya Sharma", "+91 9876543210", User.Role.SUPER_ADMIN);
@@ -101,7 +102,7 @@ public class DataSeeder implements CommandLineRunner {
             System.out.println("🌱 Seeding Donation.app Version 1 Database (Ganesh Chaturthi & Dasara)...");
 
             // 2. Create Organizations
-            Organization ganeshOrg = new Organization("Lalbaugcha Raja Sarvajanik Ganeshotsav Mandal", "FESTIVAL_COMMITTEE", "REG/MH/2026/8941", "contact@lalbaugcharaja.org", "+91 22 2471 3456", "Lalbaug, Parel, Mumbai 400012");
+            Organization ganeshOrg = new Organization("Unicode Estates, PM Palem", "FESTIVAL_COMMITTEE", "REG/AP/2026/8941", "contact@unicodeestates.org", "+91 98765 43210", "Unicode Estates, PM Palem, Visakhapatnam 530041");
             ganeshOrg.setLogoUrl("https://images.unsplash.com/photo-1605626830588-4663e26b1c5a?w=400");
             organizationRepository.save(ganeshOrg);
 
