@@ -16,6 +16,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +42,12 @@ public class EmailServiceTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(emailService, "smtpHost", "smtp.gmail.com");
+        ReflectionTestUtils.setField(emailService, "smtpPort", 587);
+        ReflectionTestUtils.setField(emailService, "smtpUsername", "notifications@donation.app");
+        ReflectionTestUtils.setField(emailService, "smtpPassword", "app-password-secret");
         ReflectionTestUtils.setField(emailService, "fromEmail", "notifications@donation.app");
+        ReflectionTestUtils.setField(emailService, "adminEmail", "admin@donation.app");
         ReflectionTestUtils.setField(emailService, "appBaseUrl", "https://donation-app-frontend-150r.onrender.com");
 
         Festival festival = new Festival();
@@ -60,6 +66,34 @@ public class EmailServiceTest {
         receipt.setReceiptNumber("REC-MANUAL-272201");
         receipt.setQrCodeHash("HASH272201");
         receipt.setDonation(donation);
+    }
+
+    @Test
+    void testIsConfigured_ReturnsTrueWhenAllFieldsSet() {
+        assertTrue(emailService.isConfigured());
+
+        Map<String, Object> map = emailService.getSmtpStatusMap();
+        assertEquals(true, map.get("configured"));
+        assertEquals("smtp.gmail.com", map.get("smtpHost"));
+        assertEquals(587, map.get("smtpPort"));
+    }
+
+    @Test
+    void testIsConfigured_MissingUsername_ReturnsFalse() {
+        ReflectionTestUtils.setField(emailService, "smtpUsername", "");
+        assertFalse(emailService.isConfigured());
+    }
+
+    @Test
+    void testIsConfigured_MissingPassword_ReturnsFalse() {
+        ReflectionTestUtils.setField(emailService, "smtpPassword", "");
+        assertFalse(emailService.isConfigured());
+    }
+
+    @Test
+    void testIsConfigured_MissingMailFrom_ReturnsFalse() {
+        ReflectionTestUtils.setField(emailService, "fromEmail", "");
+        assertFalse(emailService.isConfigured());
     }
 
     @Test
@@ -96,5 +130,46 @@ public class EmailServiceTest {
         );
 
         assertTrue(ex.getMessage().contains("Failed to send receipt email via SMTP"));
+    }
+
+    @Test
+    void testSendAdminTestEmail_Success() {
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        assertDoesNotThrow(() -> emailService.sendAdminTestEmail());
+
+        verify(mailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void testSendAdminTestEmail_Unconfigured_ThrowsIllegalStateException() {
+        ReflectionTestUtils.setField(emailService, "smtpPassword", "");
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+                emailService.sendAdminTestEmail()
+        );
+
+        assertTrue(ex.getMessage().contains("SMTP email configuration is incomplete"));
+    }
+
+    @Test
+    void testSendAdminTestEmail_SmtpException_ThrowsRuntimeException() {
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        doThrow(new MailSendException("Auth failed")).when(mailSender).send(any(MimeMessage.class));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                emailService.sendAdminTestEmail()
+        );
+
+        assertTrue(ex.getMessage().contains("Failed to send test email"));
+    }
+
+    @Test
+    void testSendAdminDonationNotificationEmail_Success() {
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        assertDoesNotThrow(() -> emailService.sendAdminDonationNotificationEmail(donation, receipt));
+
+        verify(mailSender, times(1)).send(any(MimeMessage.class));
     }
 }

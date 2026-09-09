@@ -12,8 +12,8 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("timestamp", LocalDateTime.now());
         errorDetails.put("status", HttpStatus.BAD_REQUEST.value());
@@ -22,13 +22,42 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException ex) {
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("timestamp", LocalDateTime.now());
+        errorDetails.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        errorDetails.put("error", "Internal Server Error");
+        errorDetails.put("message", ex.getMessage());
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("timestamp", LocalDateTime.now());
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Runtime error";
+        
+        if (msg.toLowerCase().contains("not found")) {
+            errorDetails.put("status", HttpStatus.NOT_FOUND.value());
+            errorDetails.put("error", "Not Found");
+            errorDetails.put("message", msg);
+            return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+        }
+
+        errorDetails.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        errorDetails.put("error", "Internal Server Error");
+        errorDetails.put("message", msg);
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put("timestamp", LocalDateTime.now());
         errorDetails.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorDetails.put("error", "Internal Server Error");
-        errorDetails.put("message", "An unexpected error occurred. Please contact festival committee support.");
+        errorDetails.put("message", ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred.");
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

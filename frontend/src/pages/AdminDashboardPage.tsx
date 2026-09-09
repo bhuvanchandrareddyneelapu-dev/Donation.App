@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, PlusCircle, Settings, Calendar, Bell, FileText, Users, Download, Send, RotateCcw, ShieldCheck, AlertCircle, RefreshCw, Eye, X } from 'lucide-react';
+import { DollarSign, PlusCircle, Settings, Calendar, Bell, FileText, Users, Download, Send, RotateCcw, ShieldCheck, AlertCircle, RefreshCw, Eye, X, Mail, CheckCircle, XCircle } from 'lucide-react';
 import api from '../services/api';
 import { AddCashDonationModal } from '../components/admin/AddCashDonationModal';
 import { downloadAuthenticatedFile } from '../utils/download';
@@ -8,6 +8,7 @@ import { downloadAuthenticatedFile } from '../utils/download';
 export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [donations, setDonations] = useState<any[]>([]);
+  const [emailStatus, setEmailStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAddCashModal, setShowAddCashModal] = useState(false);
 
@@ -15,14 +16,17 @@ export const AdminDashboardPage: React.FC = () => {
   const [reversingDonation, setReversingDonation] = useState<any | null>(null);
   const [reversalReason, setReversalReason] = useState('');
   const [reversingLoading, setReversingLoading] = useState(false);
+  const [testEmailLoading, setTestEmailLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsRes, donationsRes] = await Promise.all([
+      const [statsRes, donationsRes, emailStatusRes] = await Promise.all([
         api.get('/admin/dashboard-stats?festivalId=1').catch(() => null),
         api.get('/donations/festival/1').catch(() => null),
+        api.get('/admin/email/status').catch(() => null),
       ]);
 
       if (statsRes?.data) {
@@ -30,6 +34,9 @@ export const AdminDashboardPage: React.FC = () => {
       }
       if (donationsRes?.data) {
         setDonations(donationsRes.data);
+      }
+      if (emailStatusRes?.data) {
+        setEmailStatus(emailStatusRes.data);
       }
     } catch (err) {
       console.error('Failed to load supervisor dashboard data:', err);
@@ -51,14 +58,33 @@ export const AdminDashboardPage: React.FC = () => {
     };
   }, []);
 
+  const handleSendTestEmail = async () => {
+    setTestEmailLoading(true);
+    setErrorMsg('');
+    try {
+      const res = await api.post('/admin/email/test');
+      setToastMsg(res.data?.message || 'Production test email sent successfully. Check the admin inbox.');
+      setTimeout(() => setToastMsg(''), 5000);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Failed to send production test email.';
+      setErrorMsg(msg);
+      setTimeout(() => setErrorMsg(''), 6000);
+    } finally {
+      setTestEmailLoading(false);
+    }
+  };
+
   const handleResendEmail = async (id: number) => {
+    setErrorMsg('');
     try {
       await api.post(`/admin/donations/${id}/resend-email`);
       setToastMsg('Receipt email sent successfully.');
-      setTimeout(() => setToastMsg(''), 4000);
+      setTimeout(() => setToastMsg(''), 5000);
     } catch (err: any) {
       console.error('Failed to resend email receipt:', err);
-      alert('Failed to send receipt email. Please try again.');
+      const msg = err?.response?.data?.message || 'Failed to send receipt email. Please try again.';
+      setErrorMsg(msg);
+      setTimeout(() => setErrorMsg(''), 6000);
     }
   };
 
@@ -97,6 +123,14 @@ export const AdminDashboardPage: React.FC = () => {
           <div className="fixed top-24 right-5 z-50 p-4 rounded-2xl bg-emerald-600 text-white font-extrabold text-xs shadow-2xl flex items-center space-x-2 animate-bounce">
             <ShieldCheck className="w-5 h-5" />
             <span>{toastMsg}</span>
+          </div>
+        )}
+
+        {/* Error Toast Notification */}
+        {errorMsg && (
+          <div className="fixed top-24 right-5 z-50 p-4 rounded-2xl bg-rose-600 text-white font-extrabold text-xs shadow-2xl flex items-center space-x-2 animate-bounce">
+            <AlertCircle className="w-5 h-5" />
+            <span>{errorMsg}</span>
           </div>
         )}
 
@@ -245,6 +279,68 @@ export const AdminDashboardPage: React.FC = () => {
               <RefreshCw className="w-5 h-5 text-slate-400" />
               <span className="text-[11px] font-bold">Refresh Stats</span>
             </button>
+          </div>
+        </div>
+
+        {/* Email Delivery Diagnostics & Test Panel */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-400">
+                <Mail className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white flex items-center space-x-2">
+                  <span>EMAIL DELIVERY DIAGNOSTICS</span>
+                  {emailStatus?.configured ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> CONFIGURED
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" /> NOT CONFIGURED
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-slate-400">Live production SMTP configuration status & delivery test suite</p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSendTestEmail}
+              disabled={testEmailLoading}
+              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 disabled:opacity-50 text-white font-extrabold text-xs shadow-lg shadow-orange-500/20 flex items-center space-x-2 transition"
+            >
+              <Send className="w-4 h-4" />
+              <span>{testEmailLoading ? 'Sending Test Email...' : 'Send Test Email'}</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs pt-2">
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">SMTP Host</span>
+              <div className="font-mono font-bold text-white mt-0.5 truncate">{emailStatus?.smtpHost || 'Unconfigured'}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">SMTP Port</span>
+              <div className="font-mono font-bold text-amber-400 mt-0.5">{emailStatus?.smtpPort || 587}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">STARTTLS</span>
+              <div className="font-mono font-bold text-emerald-400 mt-0.5">{emailStatus?.startTls ? 'ENABLED' : 'DISABLED'}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Auth Enabled</span>
+              <div className="font-mono font-bold text-emerald-400 mt-0.5">{emailStatus?.smtpAuth ? 'YES' : 'NO'}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Sender (MAIL_FROM)</span>
+              <div className="font-mono font-bold text-slate-300 mt-0.5 truncate">{emailStatus?.fromEmail || 'Missing'}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Admin Recipient</span>
+              <div className="font-mono font-bold text-slate-300 mt-0.5 truncate">{emailStatus?.adminEmail || 'Missing'}</div>
+            </div>
           </div>
         </div>
 

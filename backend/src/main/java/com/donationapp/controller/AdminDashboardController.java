@@ -33,15 +33,18 @@ public class AdminDashboardController {
     private final DonationRepository donationRepository;
     private final FestivalRepository festivalRepository;
     private final AuditLogRepository auditLogRepository;
+    private final com.donationapp.service.EmailService emailService;
 
     public AdminDashboardController(DonationService donationService,
                                     DonationRepository donationRepository,
                                     FestivalRepository festivalRepository,
-                                    AuditLogRepository auditLogRepository) {
+                                    AuditLogRepository auditLogRepository,
+                                    com.donationapp.service.EmailService emailService) {
         this.donationService = donationService;
         this.donationRepository = donationRepository;
         this.festivalRepository = festivalRepository;
         this.auditLogRepository = auditLogRepository;
+        this.emailService = emailService;
     }
 
     @GetMapping("/dashboard-stats")
@@ -123,6 +126,19 @@ public class AdminDashboardController {
     public ResponseEntity<?> resendReceiptEmail(@PathVariable Long id) {
         donationService.resendReceiptEmail(id);
         return ResponseEntity.ok(Map.of("message", "Receipt email dispatched successfully for donation ID: " + id));
+    }
+
+    @GetMapping("/email/status")
+    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN')")
+    public ResponseEntity<?> getEmailStatus() {
+        return ResponseEntity.ok(emailService.getSmtpStatusMap());
+    }
+
+    @PostMapping("/email/test")
+    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN')")
+    public ResponseEntity<?> sendTestEmail() {
+        emailService.sendAdminTestEmail();
+        return ResponseEntity.ok(Map.of("message", "Production test email sent successfully. Check the admin inbox."));
     }
 
     @GetMapping("/audit-logs")
