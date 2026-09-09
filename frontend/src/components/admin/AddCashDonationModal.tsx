@@ -66,7 +66,7 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
 
       const res = await api.post('/donations/manual', payload);
       setCreatedReceipt(res.data);
-      window.dispatchEvent(new Event('donation-updated'));
+      window.dispatchEvent(new CustomEvent('donation-updated', { detail: { donationId: res.data?.id || res.data?.donationId } }));
       onSuccess();
     } catch (err: any) {
       console.error('Failed to record manual cash donation:', err);

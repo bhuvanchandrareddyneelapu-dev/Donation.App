@@ -39,6 +39,15 @@ export const AdminDashboardPage: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
+
+    const handleUpdate = () => {
+      fetchDashboardData();
+    };
+
+    window.addEventListener('donation-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('donation-updated', handleUpdate);
+    };
   }, []);
 
   const handleResendEmail = async (id: number) => {

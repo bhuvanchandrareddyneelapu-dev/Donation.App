@@ -15,7 +15,20 @@ export const TransparencyPage: React.FC = () => {
   });
 
   useEffect(() => {
-    getCollectionSummary(1).then(setSummary).catch(console.error);
+    const loadSummary = () => {
+      getCollectionSummary(1).then(setSummary).catch(console.error);
+    };
+
+    loadSummary();
+
+    const handleUpdate = () => {
+      loadSummary();
+    };
+
+    window.addEventListener('donation-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('donation-updated', handleUpdate);
+    };
   }, []);
 
   const mockExpenses = [

@@ -37,6 +37,15 @@ export const CollectionOverviewCard: React.FC<CollectionOverviewCardProps> = ({
 
   useEffect(() => {
     fetchSummary();
+
+    const handleUpdate = () => {
+      fetchSummary();
+    };
+
+    window.addEventListener('donation-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('donation-updated', handleUpdate);
+    };
   }, [festivalId, refreshTrigger]);
 
   const formatCurrency = (amount: number) => {

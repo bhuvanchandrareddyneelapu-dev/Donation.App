@@ -48,6 +48,15 @@ export const PublicDonorsPage: React.FC = () => {
 
   useEffect(() => {
     fetchPublicData();
+
+    const handleUpdate = () => {
+      fetchPublicData();
+    };
+
+    window.addEventListener('donation-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('donation-updated', handleUpdate);
+    };
   }, []);
 
   const filteredDonors = donors.filter((d) => {
