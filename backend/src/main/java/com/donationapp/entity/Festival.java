@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "festivals")
-@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "$$_hibernate_interceptor"})
 public class Festival {
 
     public enum FestivalType {
@@ -30,7 +30,7 @@ public class Festival {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organization_id")
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "$$_hibernate_interceptor"})
     private Organization organization;
 
     @Column(nullable = false)
