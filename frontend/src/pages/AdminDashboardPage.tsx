@@ -40,13 +40,13 @@ export const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
 
-    const handleUpdate = () => {
+    const handleDonationUpdated = () => {
       fetchDashboardData();
     };
 
-    window.addEventListener('donation-updated', handleUpdate);
+    window.addEventListener('donation-updated', handleDonationUpdated);
     return () => {
-      window.removeEventListener('donation-updated', handleUpdate);
+      window.removeEventListener('donation-updated', handleDonationUpdated);
     };
   }, []);
 

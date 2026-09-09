@@ -74,4 +74,34 @@ public class DonorOtpService {
             return resp;
         }).collect(Collectors.toList());
     }
+
+    public List<DonationResponse> getDonorHistoryByPhone(String phone) {
+        String cleanPhone = phone.replaceAll("[^0-9]", "");
+        if (cleanPhone.isEmpty()) {
+            return List.of();
+        }
+        List<Donation> donations = donationRepository.findByDonorPhoneContainingOrDonorNameContainingOrTransactionIdContaining(cleanPhone, cleanPhone, cleanPhone);
+
+        return donations.stream().map(d -> {
+            Receipt r = receiptRepository.findByDonationId(d.getId()).orElse(null);
+            DonationResponse resp = new DonationResponse();
+            resp.setId(d.getId());
+            resp.setFestivalId(d.getFestival().getId());
+            resp.setFestivalName(d.getFestival().getName());
+            resp.setDonorName(d.isAnonymous() ? "Anonymous Donor" : d.getDonorName());
+            resp.setDonorPhone(d.getDonorPhone());
+            resp.setDonorAddress(d.getDonorAddress());
+            resp.setAmount(d.getAmount());
+            resp.setPaymentType(d.getPaymentType());
+            resp.setPaymentStatus(d.getPaymentStatus());
+            resp.setTransactionId(d.getTransactionId());
+            if (r != null) {
+                resp.setReceiptNumber(r.getReceiptNumber());
+                resp.setQrCodeHash(r.getQrCodeHash());
+            }
+            resp.setAnonymous(d.isAnonymous());
+            resp.setCreatedAt(d.getCreatedAt());
+            return resp;
+        }).collect(Collectors.toList());
+    }
 }

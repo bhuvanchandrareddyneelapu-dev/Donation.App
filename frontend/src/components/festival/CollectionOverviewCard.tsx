@@ -38,13 +38,16 @@ export const CollectionOverviewCard: React.FC<CollectionOverviewCardProps> = ({
   useEffect(() => {
     fetchSummary();
 
-    const handleUpdate = () => {
-      fetchSummary();
+    const handleDonationUpdated = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      if (!customEvt?.detail?.festivalId || customEvt.detail.festivalId === festivalId) {
+        fetchSummary();
+      }
     };
 
-    window.addEventListener('donation-updated', handleUpdate);
+    window.addEventListener('donation-updated', handleDonationUpdated);
     return () => {
-      window.removeEventListener('donation-updated', handleUpdate);
+      window.removeEventListener('donation-updated', handleDonationUpdated);
     };
   }, [festivalId, refreshTrigger]);
 

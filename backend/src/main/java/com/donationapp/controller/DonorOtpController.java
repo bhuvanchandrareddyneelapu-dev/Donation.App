@@ -30,4 +30,9 @@ public class DonorOtpController {
             @RequestParam String otp) {
         return ResponseEntity.ok(donorOtpService.verifyOtpAndGetHistory(phone, otp));
     }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<DonationResponse>> getDonorHistory(@RequestParam String phone) {
+        return ResponseEntity.ok(donorOtpService.getDonorHistoryByPhone(phone));
+    }
 }

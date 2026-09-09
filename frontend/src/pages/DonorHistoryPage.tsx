@@ -67,17 +67,23 @@ export const DonorHistoryPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const handleUpdate = () => {
-      if (phone) {
-        fetchHistoryData(phone, otp);
+    const handleDonationUpdated = () => {
+      if (step === 'HISTORY' && phone) {
+        api.get(`/donor/history?phone=${encodeURIComponent(phone)}`)
+          .then((res) => {
+            if (res.data) {
+              setDonations(res.data);
+            }
+          })
+          .catch(console.error);
       }
     };
 
-    window.addEventListener('donation-updated', handleUpdate);
+    window.addEventListener('donation-updated', handleDonationUpdated);
     return () => {
-      window.removeEventListener('donation-updated', handleUpdate);
+      window.removeEventListener('donation-updated', handleDonationUpdated);
     };
-  }, [phone, otp]);
+  }, [step, phone]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-16 flex items-center justify-center p-4">

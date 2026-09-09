@@ -49,13 +49,13 @@ export const PublicDonorsPage: React.FC = () => {
   useEffect(() => {
     fetchPublicData();
 
-    const handleUpdate = () => {
+    const handleDonationUpdated = () => {
       fetchPublicData();
     };
 
-    window.addEventListener('donation-updated', handleUpdate);
+    window.addEventListener('donation-updated', handleDonationUpdated);
     return () => {
-      window.removeEventListener('donation-updated', handleUpdate);
+      window.removeEventListener('donation-updated', handleDonationUpdated);
     };
   }, []);
 

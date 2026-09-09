@@ -29,11 +29,18 @@ export const DonorWall: React.FC<DonorWallProps> = ({
 
   useEffect(() => {
     fetchPublicDonors();
-    const handleUpdate = () => fetchPublicDonors();
-    window.addEventListener('donation-updated', handleUpdate);
+
+    const handleDonationUpdated = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      if (!customEvt?.detail?.festivalId || customEvt.detail.festivalId === festivalId) {
+        fetchPublicDonors();
+      }
+    };
+
+    window.addEventListener('donation-updated', handleDonationUpdated);
     const interval = setInterval(fetchPublicDonors, 20000);
     return () => {
-      window.removeEventListener('donation-updated', handleUpdate);
+      window.removeEventListener('donation-updated', handleDonationUpdated);
       clearInterval(interval);
     };
   }, [festivalId, refreshTrigger]);

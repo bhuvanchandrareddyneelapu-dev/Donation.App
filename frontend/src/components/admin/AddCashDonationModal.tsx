@@ -53,20 +53,31 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
         festivalId,
         donorName: donorName.trim(),
         donorPhone: donorPhone.trim(),
+        phone: donorPhone.trim(),
         donorEmail: noEmail ? '' : donorEmail.trim(),
+        email: noEmail ? '' : donorEmail.trim(),
         gotram: gotram.trim(),
         familyDetails: familyDetails.trim(),
         publicVisibility,
         isAnonymous,
+        anonymous: isAnonymous,
         amount,
         purpose,
         paymentType: 'CASH',
         remarks: notes.trim() || 'Physical cash contribution recorded by Super Admin',
+        notes: notes.trim() || 'Physical cash contribution recorded by Super Admin',
       };
 
       const res = await api.post('/donations/manual', payload);
       setCreatedReceipt(res.data);
-      window.dispatchEvent(new CustomEvent('donation-updated', { detail: { donationId: res.data?.id || res.data?.donationId } }));
+      window.dispatchEvent(
+        new CustomEvent('donation-updated', {
+          detail: {
+            donationId: res.data?.id || res.data?.donationId,
+            festivalId: res.data?.festivalId || festivalId,
+          },
+        })
+      );
       onSuccess();
     } catch (err: any) {
       console.error('Failed to record manual cash donation:', err);

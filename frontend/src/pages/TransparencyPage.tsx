@@ -21,13 +21,13 @@ export const TransparencyPage: React.FC = () => {
 
     loadSummary();
 
-    const handleUpdate = () => {
+    const handleDonationUpdated = () => {
       loadSummary();
     };
 
-    window.addEventListener('donation-updated', handleUpdate);
+    window.addEventListener('donation-updated', handleDonationUpdated);
     return () => {
-      window.removeEventListener('donation-updated', handleUpdate);
+      window.removeEventListener('donation-updated', handleDonationUpdated);
     };
   }, []);
 

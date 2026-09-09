@@ -52,7 +52,14 @@ export const CashDonationModal: React.FC<CashDonationModalProps> = ({ festival, 
       const res = await api.post('/donations/cash', payload);
       setReceiptInfo(res.data);
       setSubmitted(true);
-      window.dispatchEvent(new CustomEvent('donation-updated', { detail: { donationId: res.data?.id || res.data?.donationId } }));
+      window.dispatchEvent(
+        new CustomEvent('donation-updated', {
+          detail: {
+            donationId: res.data?.id || res.data?.donationId,
+            festivalId: res.data?.festivalId || festival.id,
+          },
+        })
+      );
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);

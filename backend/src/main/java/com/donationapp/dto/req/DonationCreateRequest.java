@@ -66,9 +66,11 @@ public class DonationCreateRequest {
 
     public boolean isAnonymous() { return isAnonymous; }
     public void setAnonymous(boolean anonymous) { isAnonymous = anonymous; }
+    public void setIsAnonymous(boolean isAnonymous) { this.isAnonymous = isAnonymous; }
 
     public String getRemarks() { return remarks; }
     public void setRemarks(String remarks) { this.remarks = remarks; }
+    public void setNotes(String notes) { if (this.remarks == null || this.remarks.isEmpty()) this.remarks = notes; }
 
     public String getGotram() { return gotram; }
     public void setGotram(String gotram) { this.gotram = gotram; }
