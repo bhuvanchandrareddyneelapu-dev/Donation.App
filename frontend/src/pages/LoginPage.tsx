@@ -19,16 +19,29 @@ export const LoginPage: React.FC = () => {
     { role: 'DONOR', name: 'Donor', email: 'donor@donation.app', pass: 'donor123', bg: 'bg-amber-600' },
   ];
 
-  const handleQuickLogin = (demo: typeof demoAccounts[0]) => {
-    login({
-      id: Math.floor(Math.random() * 1000),
-      name: demo.name,
-      email: demo.email,
-      phone: '+91 98765 43210',
-      role: demo.role as any,
-      token: 'DEMO_JWT_TOKEN_' + Date.now(),
-    });
-    navigate('/dashboard');
+  const handleQuickLogin = async (demo: typeof demoAccounts[0]) => {
+    try {
+      const res = await api.post('/auth/login', { email: demo.email, password: demo.pass });
+      login({
+        id: res.data.id,
+        name: res.data.name,
+        email: res.data.email,
+        phone: res.data.phone,
+        role: res.data.role,
+        token: res.data.token,
+      });
+      navigate('/dashboard');
+    } catch {
+      login({
+        id: Math.floor(Math.random() * 1000),
+        name: demo.name,
+        email: demo.email,
+        phone: '+91 98765 43210',
+        role: demo.role as any,
+        token: 'DEMO_JWT_TOKEN_' + Date.now(),
+      });
+      navigate('/dashboard');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

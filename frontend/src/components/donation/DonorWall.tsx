@@ -29,9 +29,13 @@ export const DonorWall: React.FC<DonorWallProps> = ({
 
   useEffect(() => {
     fetchPublicDonors();
-    // Poll every 20 seconds for live updates
+    const handleUpdate = () => fetchPublicDonors();
+    window.addEventListener('donation-updated', handleUpdate);
     const interval = setInterval(fetchPublicDonors, 20000);
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener('donation-updated', handleUpdate);
+      clearInterval(interval);
+    };
   }, [festivalId, refreshTrigger]);
 
   return (
