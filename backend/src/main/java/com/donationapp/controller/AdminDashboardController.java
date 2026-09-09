@@ -94,9 +94,9 @@ public class AdminDashboardController {
 
     @PostMapping("/donations/cash")
     @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN', 'TREASURER', 'VOLUNTEER')")
-    public ResponseEntity<?> addCashDonation(@Valid @RequestBody DonationCreateRequest req, Authentication auth) {
+    public ResponseEntity<?> addCashDonation(@Valid @RequestBody com.donationapp.dto.req.ManualDonationRequest req, Authentication auth) {
         String username = auth != null ? auth.getName() : "Supervisor";
-        DonationResponse resp = donationService.processCashDonation(req, null);
+        DonationResponse resp = donationService.processManualDonation(req, username);
 
         // Audit Log
         AuditLog audit = new AuditLog(username, "SUPERVISOR", "ADD_CASH_DONATION", "Donation", String.valueOf(resp.getId()), "Added cash donation of ₹" + req.getAmount() + " for " + req.getDonorName());

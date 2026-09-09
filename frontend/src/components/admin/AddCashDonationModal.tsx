@@ -22,6 +22,7 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
   const [amount, setAmount] = useState<number>(1000);
   const [purpose, setPurpose] = useState('GANESH_CHATURTHI');
   const [publicVisibility, setPublicVisibility] = useState(true);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -29,6 +30,8 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent double-submit
+
     if (!donorName.trim()) {
       setErrorMsg('Please enter donor name.');
       return;
@@ -37,8 +40,8 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
       setErrorMsg('Please enter donor phone number.');
       return;
     }
-    if (!amount || amount < 1000) {
-      setErrorMsg('Minimum contribution amount is ₹1,000.');
+    if (!amount || amount < 1) {
+      setErrorMsg('Donation amount must be at least ₹1.');
       return;
     }
 
@@ -54,18 +57,18 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
         gotram: gotram.trim(),
         familyDetails: familyDetails.trim(),
         publicVisibility,
+        isAnonymous,
         amount,
         purpose,
         paymentType: 'CASH',
-        isAnonymous: false,
-        remarks: notes.trim() || 'Physical cash contribution recorded by Supervisor/Head',
+        remarks: notes.trim() || 'Physical cash contribution recorded by Super Admin',
       };
 
-      const res = await api.post('/admin/donations/cash', payload);
+      const res = await api.post('/donations/manual', payload);
       setCreatedReceipt(res.data);
       onSuccess();
     } catch (err: any) {
-      console.error('Failed to record cash donation:', err);
+      console.error('Failed to record manual cash donation:', err);
       setErrorMsg(err?.response?.data?.message || err?.response?.data?.error || 'Failed to record cash donation.');
     } finally {
       setLoading(false);
@@ -86,12 +89,12 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
           </button>
           <div className="flex items-center space-x-2 mb-1">
             <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-black/20 tracking-wider">
-              Supervisor Action
+              Super Admin Action
             </span>
           </div>
           <h3 className="text-xl font-black flex items-center space-x-2">
             <DollarSign className="w-6 h-6 text-amber-300" />
-            <span>Record Physical Cash Donation</span>
+            <span>Record Offline / Cash Donation</span>
           </h3>
           <p className="text-xs text-emerald-100 mt-1">Official instant receipt and DB ledger update</p>
         </div>
@@ -114,7 +117,7 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Ramesh Sharma"
+                    placeholder="e.g. N.Govinda Reddy(209)"
                     value={donorName}
                     onChange={(e) => setDonorName(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
@@ -126,7 +129,7 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
                   <input
                     type="tel"
                     required
-                    placeholder="+91 98765 43210"
+                    placeholder="e.g. 6304151954"
                     value={donorPhone}
                     onChange={(e) => setDonorPhone(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
@@ -139,7 +142,7 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
                   <label className="block font-bold text-slate-300 mb-1">Gotram (Optional)</label>
                   <input
                     type="text"
-                    placeholder="e.g. Bharadwaja"
+                    placeholder="e.g. Nagula Gotram"
                     value={gotram}
                     onChange={(e) => setGotram(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
@@ -150,7 +153,7 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
                   <label className="block font-bold text-slate-300 mb-1">Family Details (Optional)</label>
                   <input
                     type="text"
-                    placeholder="e.g. Family of 4"
+                    placeholder="e.g. N.Govinda Reddy & N.Leela Rani Family"
                     value={familyDetails}
                     onChange={(e) => setFamilyDetails(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
@@ -187,12 +190,12 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-amber-400 mb-1">Amount (₹) * [Min ₹1,000]</label>
+                  <label className="block font-bold text-amber-400 mb-1">Amount (₹) *</label>
                   <input
                     type="number"
-                    min="1000"
+                    min="1"
                     required
-                    placeholder="1000"
+                    placeholder="1516"
                     value={amount}
                     onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
                     className="w-full bg-slate-950 border border-emerald-500/50 rounded-xl px-3.5 py-2.5 text-base font-extrabold text-emerald-400 focus:border-emerald-500 focus:outline-none"
@@ -219,33 +222,48 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
                 <label className="block font-bold text-slate-300 mb-1">Notes / Admin Remarks</label>
                 <input
                   type="text"
-                  placeholder="e.g. Received physically at Mandap desk"
+                  placeholder="e.g. Cash collected by super admin"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center space-x-3 pt-2">
-                <input
-                  type="checkbox"
-                  id="publicVisCheck"
-                  checked={publicVisibility}
-                  onChange={(e) => setPublicVisibility(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-700 text-emerald-600 focus:ring-emerald-500"
-                />
-                <label htmlFor="publicVisCheck" className="text-xs text-slate-300 cursor-pointer">
-                  Show donation on public community donor wall (`/donors`)
-                </label>
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="publicVisCheck"
+                    checked={publicVisibility}
+                    onChange={(e) => setPublicVisibility(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-700 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <label htmlFor="publicVisCheck" className="text-xs text-slate-300 cursor-pointer">
+                    Show donation on public community donor wall (`/donors`)
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="anonymousCheck"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-700 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <label htmlFor="anonymousCheck" className="text-xs text-slate-300 cursor-pointer">
+                    Display as Anonymous Devotee on public wall
+                  </label>
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition"
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
-                  <span>Recording Cash Entry...</span>
+                  <span>Committing Cash Entry...</span>
                 ) : (
                   <span>Record Cash Donation ₹{amount?.toLocaleString('en-IN')} & Issue Receipt</span>
                 )}
@@ -260,7 +278,7 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
 
               <div>
                 <h4 className="text-xl font-extrabold text-white">Cash Donation Recorded!</h4>
-                <p className="text-xs text-slate-400 mt-1">Official Receipt #{createdReceipt?.receiptNumber} issued successfully</p>
+                <p className="text-xs text-slate-400 mt-1">Official Receipt #{createdReceipt?.receiptNumber} committed successfully</p>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2 text-xs">
