@@ -7,6 +7,7 @@ import com.donationapp.repository.ExpenseProofRepository;
 import com.donationapp.repository.ExpenseRepository;
 import com.donationapp.repository.FestivalRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -28,10 +29,12 @@ public class TransparencyService {
         this.donationRepository = donationRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Expense> getExpensesByFestival(Long festivalId) {
         return expenseRepository.findByFestivalId(festivalId);
     }
 
+    @Transactional(readOnly = true)
     public List<ExpenseProof> getProofsByExpense(Long expenseId) {
         return expenseProofRepository.findByExpenseId(expenseId);
     }
@@ -49,6 +52,7 @@ public class TransparencyService {
         return savedExpense;
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getFestivalTransparencySummary(Long festivalId) {
         Festival festival = festivalRepository.findById(festivalId)
                 .orElse(null);

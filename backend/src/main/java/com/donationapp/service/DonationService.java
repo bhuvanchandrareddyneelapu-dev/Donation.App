@@ -431,6 +431,7 @@ public class DonationService {
         emailService.sendDonationReceiptEmail(donation, receipt);
     }
 
+    @Transactional(readOnly = true)
     public List<DonationResponse> getDonationsByFestival(Long festivalId) {
         return donationRepository.findByFestivalId(festivalId).stream()
                 .map(d -> {
@@ -441,6 +442,7 @@ public class DonationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<DonationResponse> getPublicDonations(Long festivalId) {
         return donationRepository.findByFestivalIdAndPublicVisibilityTrueAndIsReversedFalseAndIsTestFalseOrderByIdDesc(festivalId).stream()
                 .map(d -> {
@@ -450,6 +452,7 @@ public class DonationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<DonationResponse> getTestDonations(Long festivalId) {
         return donationRepository.findByFestivalIdAndIsTestTrueOrderByIdDesc(festivalId).stream()
                 .map(d -> {
@@ -459,6 +462,7 @@ public class DonationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<DonationResponse> searchDonations(String query) {
         return donationRepository.findByDonorPhoneContainingOrDonorNameContainingOrTransactionIdContaining(query, query, query)
                 .stream()

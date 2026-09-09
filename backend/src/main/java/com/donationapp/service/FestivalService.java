@@ -5,6 +5,7 @@ import com.donationapp.entity.Festival;
 import com.donationapp.repository.DonationRepository;
 import com.donationapp.repository.FestivalRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,14 +23,17 @@ public class FestivalService {
         this.donationRepository = donationRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Festival> getAllFestivals() {
         return festivalRepository.findByActiveTrue();
     }
 
+    @Transactional(readOnly = true)
     public List<Festival> getFestivalsByFestivalType(Festival.FestivalType festivalType) {
         return festivalRepository.findByFestivalType(festivalType);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Festival> getFestivalById(Long id) {
         return festivalRepository.findById(id);
     }
