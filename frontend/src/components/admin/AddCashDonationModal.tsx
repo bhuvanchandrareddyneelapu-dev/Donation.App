@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, DollarSign, CheckCircle, Download, Send, AlertCircle, ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
+import { downloadAuthenticatedFile } from '../../utils/download';
 
 interface AddCashDonationModalProps {
   festivalId: number;
@@ -315,15 +316,20 @@ export const AddCashDonationModal: React.FC<AddCashDonationModalProps> = ({
               </div>
 
               <div className="flex space-x-3">
-                <a
-                  href={`/api/v1/receipts/${createdReceipt?.receiptNumber}/pdf`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={async () => {
+                    try {
+                      const rNum = createdReceipt?.receiptNumber || createdReceipt?.id;
+                      await downloadAuthenticatedFile(`/receipts/${rNum}/pdf`, `Receipt_${rNum}.pdf`);
+                    } catch (err) {
+                      console.error('Failed to download PDF receipt:', err);
+                    }
+                  }}
                   className="w-1/2 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-md"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download PDF</span>
-                </a>
+                </button>
                 <button
                   onClick={onClose}
                   className="w-1/2 py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-xs"

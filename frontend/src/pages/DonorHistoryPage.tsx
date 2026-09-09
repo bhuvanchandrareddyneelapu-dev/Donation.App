@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Smartphone, Lock, Download, CheckCircle, Heart, ArrowRight, ShieldCheck } from 'lucide-react';
 import api from '../services/api';
+import { downloadAuthenticatedFile } from '../utils/download';
 import { Donation } from '../types';
 
 export const DonorHistoryPage: React.FC = () => {
@@ -186,14 +187,19 @@ export const DonorHistoryPage: React.FC = () => {
 
                   <div className="flex justify-between items-center pt-2 border-t border-slate-800/80">
                     <span className="text-[11px] text-slate-500">{d.createdAt}</span>
-                    <a
-                      href={`/api/v1/receipts/${d.receiptNumber || 'GAN-2026-000245'}/pdf`}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      onClick={async () => {
+                        try {
+                          const rNum = d.receiptNumber || d.id;
+                          await downloadAuthenticatedFile(`/receipts/${rNum}/pdf`, `Receipt_${rNum}.pdf`);
+                        } catch (err) {
+                          console.error('Failed to download PDF receipt:', err);
+                        }
+                      }}
                       className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 flex items-center gap-1"
                     >
                       <Download className="w-3.5 h-3.5 text-orange-400" /> PDF Receipt
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}

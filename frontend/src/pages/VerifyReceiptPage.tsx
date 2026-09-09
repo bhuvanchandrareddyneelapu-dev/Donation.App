@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { Search, ShieldCheck, QrCode, CheckCircle, Download, AlertCircle } from 'lucide-react';
 import api from '../services/api';
+import { downloadAuthenticatedFile } from '../utils/download';
 
 export const VerifyReceiptPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -152,15 +153,20 @@ export const VerifyReceiptPage: React.FC = () => {
               </div>
             </div>
 
-            <a
-              href={`/api/v1/receipts/${result.receiptNumber}/pdf`}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              onClick={async () => {
+                try {
+                  const rNum = result.receiptNumber || result.qrCodeHash;
+                  await downloadAuthenticatedFile(`/receipts/${rNum}/pdf`, `Receipt_${rNum}.pdf`);
+                } catch (err) {
+                  console.error('Failed to download PDF receipt:', err);
+                }
+              }}
               className="w-full py-3.5 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-orange-600/30 transition"
             >
               <Download className="w-4 h-4 text-white" />
               <span>Download Official PDF Receipt</span>
-            </a>
+            </button>
           </div>
         )}
 

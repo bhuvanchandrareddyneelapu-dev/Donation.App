@@ -51,6 +51,7 @@ public class NotificationServiceTransactionTest {
     void testSendDonationConfirmation_NoActiveTransaction_SendsImmediately() {
         notificationService.sendDonationConfirmation(donation, receipt);
         verify(emailService, times(1)).sendDonationReceiptEmail(donation, receipt);
+        verify(emailService, times(1)).sendAdminDonationNotificationEmail(donation, receipt);
     }
 
     @Test
@@ -62,6 +63,7 @@ public class NotificationServiceTransactionTest {
 
         // Email should NOT be sent yet before transaction commit
         verify(emailService, never()).sendDonationReceiptEmail(any(), any());
+        verify(emailService, never()).sendAdminDonationNotificationEmail(any(), any());
 
         // Simulate Spring's transaction commit
         List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.getSynchronizations();
@@ -71,8 +73,9 @@ public class NotificationServiceTransactionTest {
             sync.afterCommit();
         }
 
-        // Email SHOULD be sent after commit
+        // Both donor and admin emails SHOULD be sent after commit
         verify(emailService, times(1)).sendDonationReceiptEmail(donation, receipt);
+        verify(emailService, times(1)).sendAdminDonationNotificationEmail(donation, receipt);
     }
 
     @Test
@@ -87,5 +90,17 @@ public class NotificationServiceTransactionTest {
 
         // Email must NEVER be sent on rollback
         verify(emailService, never()).sendDonationReceiptEmail(any(), any());
+        verify(emailService, never()).sendAdminDonationNotificationEmail(any(), any());
+    }
+
+    @Test
+    void testSendDonationConfirmation_DonorEmailException_DoesNotBlockAdminEmail() {
+        doThrow(new RuntimeException("SMTP connection error")).when(emailService).sendDonationReceiptEmail(any(), any());
+
+        notificationService.sendDonationConfirmation(donation, receipt);
+
+        // Donor email threw exception, but admin email should STILL be attempted
+        verify(emailService, times(1)).sendDonationReceiptEmail(donation, receipt);
+        verify(emailService, times(1)).sendAdminDonationNotificationEmail(donation, receipt);
     }
 }

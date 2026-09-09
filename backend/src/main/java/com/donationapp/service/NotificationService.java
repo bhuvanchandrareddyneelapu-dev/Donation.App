@@ -24,16 +24,27 @@ public class NotificationService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    try {
-                        emailService.sendDonationReceiptEmail(donation, receipt);
-                    } catch (Exception e) {
-                        logger.error("Failed to send donation receipt email after commit for donation ID {}: {}",
-                                donation.getId(), e.getMessage(), e);
-                    }
+                    dispatchEmails(donation, receipt);
                 }
             });
         } else {
+            dispatchEmails(donation, receipt);
+        }
+    }
+
+    private void dispatchEmails(Donation donation, Receipt receipt) {
+        try {
             emailService.sendDonationReceiptEmail(donation, receipt);
+        } catch (Exception e) {
+            logger.error("Failed to send donor receipt email after commit for donation ID {}: {}",
+                    donation.getId(), e.getMessage(), e);
+        }
+
+        try {
+            emailService.sendAdminDonationNotificationEmail(donation, receipt);
+        } catch (Exception e) {
+            logger.error("Failed to send admin notification email after commit for donation ID {}: {}",
+                    donation.getId(), e.getMessage(), e);
         }
     }
 

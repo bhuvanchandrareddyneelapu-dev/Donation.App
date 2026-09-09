@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Heart, Search, Filter, Download, Sparkles, QrCode, Lock, CheckCircle, Users } from 'lucide-react';
 import api from '../services/api';
+import { downloadAuthenticatedFile } from '../utils/download';
 
 export const PublicDonorsPage: React.FC = () => {
   const [stats, setStats] = useState<any>({
@@ -254,15 +255,20 @@ export const PublicDonorsPage: React.FC = () => {
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                         <span>View</span>
                       </a>
-                      <a
-                        href={`/api/v1/receipts/${donor.receiptNumber}/pdf`}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        onClick={async () => {
+                          try {
+                            const rNum = donor.receiptNumber || donor.qrCodeHash;
+                            await downloadAuthenticatedFile(`/receipts/${rNum}/pdf`, `Receipt_${rNum}.pdf`);
+                          } catch (err) {
+                            console.error('Failed to download PDF receipt:', err);
+                          }
+                        }}
                         className="px-2.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-[11px] flex items-center space-x-1 shadow-sm"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>PDF</span>
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>

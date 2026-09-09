@@ -57,13 +57,25 @@ public class ReceiptController {
     public ResponseEntity<byte[]> downloadReceiptPdf(@PathVariable String receiptNumber) {
         Receipt receipt = receiptRepository.findByReceiptNumber(receiptNumber)
                 .orElseGet(() -> receiptRepository.findByQrCodeHash(receiptNumber)
-                        .orElseThrow(() -> new RuntimeException("Receipt not found: " + receiptNumber)));
+                        .orElseGet(() -> {
+                            try {
+                                Long donationId = Long.parseLong(receiptNumber);
+                                return receiptRepository.findByDonationId(donationId).orElse(null);
+                            } catch (NumberFormatException e) {
+                                return null;
+                            }
+                        }));
+
+        if (receipt == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         Donation donation = receipt.getDonation();
         byte[] pdfBytes = pdfReceiptService.generateReceiptPdf(donation, receipt);
+        String filename = "Receipt_" + receipt.getReceiptNumber() + ".pdf";
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + receiptNumber + ".pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }

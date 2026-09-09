@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Download, Send, Sparkles, RefreshCw, ArrowRight } from 'lucide-react';
 import { FestivalConfig } from '../../config/festivalConfig';
+import { downloadAuthenticatedFile } from '../../utils/download';
 
 interface DonationSuccessProps {
   config: FestivalConfig;
@@ -104,15 +105,19 @@ export const DonationSuccess: React.FC<DonationSuccessProps> = ({
               <span>View Receipt</span>
             </a>
 
-            <a
-              href={`/api/v1/receipts/${receiptNum}/pdf`}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              onClick={async () => {
+                try {
+                  await downloadAuthenticatedFile(`/receipts/${receiptNum}/pdf`, `Receipt_${receiptNum}.pdf`);
+                } catch (err) {
+                  console.error('Failed to download PDF receipt:', err);
+                }
+              }}
               className="w-full py-3 rounded-2xl bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-orange-600/30 transition"
             >
               <Download className="w-4 h-4 text-white" />
               <span>Download PDF</span>
-            </a>
+            </button>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">

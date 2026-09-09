@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ShieldCheck, Smartphone, CheckCircle, Download, Send, Sparkles, AlertCircle, Lock, QrCode, RefreshCw } from 'lucide-react';
 import { Festival } from '../../types';
 import api from '../../services/api';
+import { downloadAuthenticatedFile } from '../../utils/download';
 import {
   createRazorpayOrder,
   openRazorpayCheckout,
@@ -559,15 +560,20 @@ export const DonateModal: React.FC<DonateModalProps> = ({ festival, onClose, onS
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <a
-                  href={`/api/v1/receipts/${receiptData?.receiptNumber}/pdf`}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={async () => {
+                    try {
+                      const rNum = receiptData?.receiptNumber || receiptData?.qrCodeHash;
+                      await downloadAuthenticatedFile(`/receipts/${rNum}/pdf`, `Receipt_${rNum}.pdf`);
+                    } catch (err) {
+                      console.error('Failed to download PDF receipt:', err);
+                    }
+                  }}
                   className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center space-x-2"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Official PDF Receipt</span>
-                </a>
+                </button>
 
                 <div className="flex space-x-3">
                   <a

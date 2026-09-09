@@ -325,15 +325,20 @@ export const AdminDashboardPage: React.FC = () => {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end space-x-1">
-                        <a
-                          href={`/api/v1/receipts/${d.receiptNumber}/pdf`}
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          onClick={async () => {
+                            try {
+                              const rNum = d.receiptNumber || d.id;
+                              await downloadAuthenticatedFile(`/receipts/${rNum}/pdf`, `Receipt_${rNum}.pdf`);
+                            } catch (err) {
+                              console.error('Failed to download receipt PDF:', err);
+                            }
+                          }}
                           title="Download PDF Receipt"
                           className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
                         >
                           <Download className="w-3.5 h-3.5 text-orange-400" />
-                        </a>
+                        </button>
 
                         {d.donorEmail && (
                           <button
