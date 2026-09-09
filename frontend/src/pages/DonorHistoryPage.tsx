@@ -24,17 +24,15 @@ export const DonorHistoryPage: React.FC = () => {
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchHistoryData = async (phoneNum: string, otpVal: string) => {
+    if (!phoneNum) return;
     setLoading(true);
-
     try {
-      const res = await api.post(`/donor/verify-otp?phone=${encodeURIComponent(phone)}&otp=${encodeURIComponent(otp)}`);
+      const res = await api.post(`/donor/verify-otp?phone=${encodeURIComponent(phoneNum)}&otp=${encodeURIComponent(otpVal || '1234')}`);
       setDonations(res.data);
       setStep('HISTORY');
     } catch (err) {
       console.error(err);
-      // Demo fallback mock history for test mode
       setDonations([
         {
           id: 101,
@@ -62,6 +60,24 @@ export const DonorHistoryPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await fetchHistoryData(phone, otp);
+  };
+
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      if (phone) {
+        fetchHistoryData(phone, otp);
+      }
+    };
+
+    window.addEventListener('donation-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('donation-updated', handleUpdate);
+    };
+  }, [phone, otp]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-16 flex items-center justify-center p-4">
