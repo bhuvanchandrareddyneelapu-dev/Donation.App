@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, FileText, Download, Table, ShieldCheck } from 'lucide-react';
+import { X, FileText, Download, Table } from 'lucide-react';
+import { downloadAuthenticatedFile } from '../../utils/download';
 
 interface ReportsModalProps {
   onClose: () => void;
@@ -38,22 +39,30 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({ onClose }) => {
               </div>
             </div>
             <div className="flex space-x-2">
-              <a
-                href="/api/v1/reports/donations/pdf"
-                target="_blank"
-                rel="noreferrer"
+              <button
+                onClick={async () => {
+                  try {
+                    await downloadAuthenticatedFile('/reports/donations/pdf', 'Donations_Report.pdf');
+                  } catch (err) {
+                    console.error('Failed to download PDF report:', err);
+                  }
+                }}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 flex items-center gap-1"
               >
                 <Download className="w-3.5 h-3.5 text-orange-400" /> PDF
-              </a>
-              <a
-                href="/api/v1/reports/donations/csv"
-                target="_blank"
-                rel="noreferrer"
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await downloadAuthenticatedFile('/reports/donations/csv', 'Donations_Report.csv');
+                  } catch (err) {
+                    console.error('Failed to download CSV report:', err);
+                  }
+                }}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 flex items-center gap-1"
               >
                 <Table className="w-3.5 h-3.5 text-emerald-400" /> CSV
-              </a>
+              </button>
             </div>
           </div>
 
@@ -68,14 +77,18 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({ onClose }) => {
                 <p className="text-[10px] text-slate-400">Line-item expenses, vendors & approvals</p>
               </div>
             </div>
-            <a
-              href="/api/v1/reports/expenses/csv"
-              target="_blank"
-              rel="noreferrer"
+            <button
+              onClick={async () => {
+                try {
+                  await downloadAuthenticatedFile('/reports/expenses/csv', 'Expenses_Report.csv');
+                } catch (err) {
+                  console.error('Failed to download Expenses CSV report:', err);
+                }
+              }}
               className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 flex items-center gap-1"
             >
               <Table className="w-3.5 h-3.5 text-emerald-400" /> CSV
-            </a>
+            </button>
           </div>
 
         </div>

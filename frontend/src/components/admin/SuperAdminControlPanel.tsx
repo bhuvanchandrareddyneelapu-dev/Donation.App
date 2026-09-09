@@ -15,6 +15,7 @@ import {
   DonationAuditLogItem
 } from '../../services/festivalService';
 import api from '../../services/api';
+import { downloadAuthenticatedFile } from '../../utils/download';
 
 interface SuperAdminControlPanelProps {
   festivalId?: number;
@@ -254,18 +255,7 @@ export const SuperAdminControlPanel: React.FC<SuperAdminControlPanelProps> = ({
 
   const handleExportCsv = async () => {
     try {
-      const response = await api.get(`/admin/reports/export-csv?festivalId=${festivalId}`, {
-        responseType: 'blob',
-      });
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Donation_Report_Unicode_Estates_${Date.now()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      await downloadAuthenticatedFile(`/admin/reports/export-csv?festivalId=${festivalId}`, `Donation_Report_Unicode_Estates_${Date.now()}.csv`);
     } catch (err) {
       console.error('Error downloading CSV:', err);
       notifyError('Failed to export CSV report.');

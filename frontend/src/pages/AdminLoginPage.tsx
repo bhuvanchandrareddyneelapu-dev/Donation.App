@@ -18,8 +18,11 @@ export const AdminLoginPage: React.FC = () => {
     { role: 'VOLUNTEER', name: 'Volunteer', email: 'volunteer@donation.app', pass: 'volunteer123', bg: 'bg-blue-600' },
   ];
 
+  const [error, setError] = useState('');
+
   const handleQuickLogin = async (demo: typeof demoAccounts[0]) => {
     try {
+      setError('');
       const res = await api.post('/auth/login', { email: demo.email, password: demo.pass });
       login({
         id: res.data.id,
@@ -30,16 +33,9 @@ export const AdminLoginPage: React.FC = () => {
         token: res.data.token,
       });
       navigate('/dashboard');
-    } catch {
-      login({
-        id: Math.floor(Math.random() * 1000),
-        name: demo.name,
-        email: demo.email,
-        phone: '+91 98765 43210',
-        role: demo.role as any,
-        token: 'DEMO_JWT_TOKEN_' + Date.now(),
-      });
-      navigate('/dashboard');
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.response?.data?.message || 'Authentication failed. Please try again.');
     }
   };
 
@@ -48,6 +44,7 @@ export const AdminLoginPage: React.FC = () => {
     setLoading(true);
 
     try {
+      setError('');
       const res = await api.post('/auth/login', { email, password });
       login({
         id: res.data.id,
@@ -58,17 +55,9 @@ export const AdminLoginPage: React.FC = () => {
         token: res.data.token,
       });
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      login({
-        id: 1,
-        name: 'Committee Admin',
-        email: email,
-        phone: '+91 9876543210',
-        role: 'FESTIVAL_ADMIN',
-        token: 'DEMO_JWT_TOKEN_' + Date.now(),
-      });
-      navigate('/dashboard');
+      setError(err?.response?.data?.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
@@ -86,6 +75,12 @@ export const AdminLoginPage: React.FC = () => {
           <h2 className="text-2xl font-extrabold text-white">Committee Admin Portal</h2>
           <p className="text-xs text-slate-400">For Super Admin, Festival Admin, Treasurer & Volunteers</p>
         </div>
+
+        {error && (
+          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold text-center">
+            {error}
+          </div>
+        )}
 
         {/* Demo Logins */}
         <div className="space-y-2 pt-2 border-t border-slate-800">

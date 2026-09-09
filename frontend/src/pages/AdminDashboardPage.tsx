@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { DollarSign, PlusCircle, Settings, Calendar, Bell, FileText, Users, Download, Send, RotateCcw, ShieldCheck, AlertCircle, RefreshCw, Eye, X } from 'lucide-react';
 import api from '../services/api';
 import { AddCashDonationModal } from '../components/admin/AddCashDonationModal';
+import { downloadAuthenticatedFile } from '../utils/download';
 
 export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -253,15 +254,19 @@ export const AdminDashboardPage: React.FC = () => {
               <h3 className="text-lg font-black text-white">All Festival Contributions ({donations.length})</h3>
               <p className="text-xs text-slate-400">Complete itemized audit log of online & cash donations</p>
             </div>
-            <a
-              href="/api/v1/admin/reports/export-csv?festivalId=1"
-              target="_blank"
-              rel="noreferrer"
+            <button
+              onClick={async () => {
+                try {
+                  await downloadAuthenticatedFile('/admin/reports/export-csv?festivalId=1', 'Donation_Report_Unicode_Estates_2026.csv');
+                } catch (err) {
+                  console.error('Failed to export CSV report:', err);
+                }
+              }}
               className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center space-x-1.5 border border-slate-700"
             >
               <Download className="w-4 h-4 text-emerald-400" />
               <span>Export CSV</span>
-            </a>
+            </button>
           </div>
 
           <div className="overflow-x-auto">

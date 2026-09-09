@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Download, BarChart2, Calendar, DollarSign, Users, ShieldCheck } from 'lucide-react';
 import api from '../services/api';
 
+import { downloadAuthenticatedFile } from '../utils/download';
+
 export const AdminReportsPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -22,8 +24,12 @@ export const AdminReportsPage: React.FC = () => {
     fetchReportsData();
   }, []);
 
-  const handleExportCsv = () => {
-    window.open('/api/v1/admin/reports/export-csv?festivalId=1', '_blank');
+  const handleExportCsv = async () => {
+    try {
+      await downloadAuthenticatedFile('/admin/reports/export-csv?festivalId=1', 'Donation_Report_Unicode_Estates_2026.csv');
+    } catch (err) {
+      console.error('Failed to download CSV report:', err);
+    }
   };
 
   return (

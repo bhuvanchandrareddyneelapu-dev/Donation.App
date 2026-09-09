@@ -82,18 +82,23 @@ public class DataSeeder implements CommandLineRunner {
         runDdlQuietly("UPDATE festivals SET target_amount = 1252.00, current_collection = 1001.00 WHERE id = 1");
 
         try {
-            if (userRepository.count() > 0) {
-                return; // Seed data already loaded
+            ensureSeedUserPassword("superadmin@donation.app", "admin123", "Vikramaditya Sharma", "+91 9876543210", User.Role.SUPER_ADMIN);
+            ensureSeedUserPassword("festivaladmin@donation.app", "admin123", "Rajesh Kulkarni", "+91 9876543211", User.Role.FESTIVAL_ADMIN);
+            ensureSeedUserPassword("treasurer@donation.app", "treasurer123", "Sunil Deshmukh", "+91 9876543212", User.Role.TREASURER);
+            ensureSeedUserPassword("volunteer@donation.app", "volunteer123", "Aarav Patel", "+91 9876543213", User.Role.VOLUNTEER);
+            ensureSeedUserPassword("donor@donation.app", "donor123", "Priya Sundaram", "+91 9876543214", User.Role.DONOR);
+
+            User superAdmin = userRepository.findByEmail("superadmin@donation.app").orElse(null);
+            User festivalAdmin = userRepository.findByEmail("festivaladmin@donation.app").orElse(null);
+            User treasurer = userRepository.findByEmail("treasurer@donation.app").orElse(null);
+            User volunteerUser = userRepository.findByEmail("volunteer@donation.app").orElse(null);
+            User donorUser = userRepository.findByEmail("donor@donation.app").orElse(null);
+
+            if (organizationRepository.count() > 0) {
+                return; // Seed data already loaded beyond initial users
             }
 
             System.out.println("🌱 Seeding Donation.app Version 1 Database (Ganesh Chaturthi & Dasara)...");
-
-            // 1. Create Core Users for All 5 Version 1 Roles
-            User superAdmin = userRepository.save(new User("Vikramaditya Sharma", "superadmin@donation.app", "+91 9876543210", passwordEncoder.encode("admin123"), User.Role.SUPER_ADMIN));
-            User festivalAdmin = userRepository.save(new User("Rajesh Kulkarni", "festivaladmin@donation.app", "+91 9876543211", passwordEncoder.encode("admin123"), User.Role.FESTIVAL_ADMIN));
-            User treasurer = userRepository.save(new User("Sunil Deshmukh", "treasurer@donation.app", "+91 9876543212", passwordEncoder.encode("treasurer123"), User.Role.TREASURER));
-            User volunteerUser = userRepository.save(new User("Aarav Patel", "volunteer@donation.app", "+91 9876543213", passwordEncoder.encode("volunteer123"), User.Role.VOLUNTEER));
-            User donorUser = userRepository.save(new User("Priya Sundaram", "donor@donation.app", "+91 9876543214", passwordEncoder.encode("donor123"), User.Role.DONOR));
 
             // 2. Create Organizations
             Organization ganeshOrg = new Organization("Lalbaugcha Raja Sarvajanik Ganeshotsav Mandal", "FESTIVAL_COMMITTEE", "REG/MH/2026/8941", "contact@lalbaugcharaja.org", "+91 22 2471 3456", "Lalbaug, Parel, Mumbai 400012");
@@ -240,6 +245,20 @@ public class DataSeeder implements CommandLineRunner {
         } catch (Throwable t) {
             System.err.println("⚠️ DataSeeder warning: Database seeding skipped or encountered an issue: " + t.getMessage());
         }
+    }
+
+    private void ensureSeedUserPassword(String email, String rawPassword, String name, String phone, User.Role role) {
+        userRepository.findByEmail(email).ifPresentOrElse(
+            user -> {
+                if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+                    user.setPassword(passwordEncoder.encode(rawPassword));
+                    userRepository.save(user);
+                }
+            },
+            () -> {
+                userRepository.save(new User(name, email, phone, passwordEncoder.encode(rawPassword), role));
+            }
+        );
     }
 
     private void runDdlQuietly(String sql) {
