@@ -103,4 +103,15 @@ public class NotificationServiceTransactionTest {
         verify(emailService, times(1)).sendDonationReceiptEmail(donation, receipt);
         verify(emailService, times(1)).sendAdminDonationNotificationEmail(donation, receipt);
     }
+
+    @Test
+    void testSendDonationConfirmation_AdminEmailException_DoesNotBlockDonorEmail() {
+        doThrow(new RuntimeException("Admin SMTP connection error")).when(emailService).sendAdminDonationNotificationEmail(any(), any());
+
+        notificationService.sendDonationConfirmation(donation, receipt);
+
+        // Admin email threw exception, but donor email should STILL be attempted and succeeded
+        verify(emailService, times(1)).sendDonationReceiptEmail(donation, receipt);
+        verify(emailService, times(1)).sendAdminDonationNotificationEmail(donation, receipt);
+    }
 }

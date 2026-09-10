@@ -118,4 +118,38 @@ public class DonationServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> donationService.resendReceiptEmail(50L));
         assertTrue(ex.getMessage().contains("Receipt not found"));
     }
+
+    @Test
+    void testProcessVerifiedOnlineDonation_DuplicatePaymentId_DoesNotTriggerNotificationOrReSaveDonation() {
+        com.donationapp.dto.req.RazorpayVerifyRequest req = new com.donationapp.dto.req.RazorpayVerifyRequest();
+        req.setRazorpay_order_id("order_dup123");
+        req.setRazorpay_payment_id("pay_dup123");
+        req.setRazorpay_signature("sig_dup123");
+        req.setFestivalId(1L);
+        req.setDonorName("Devotee");
+        req.setDonorPhone("+91 9999999999");
+        req.setAmount(new BigDecimal("1001.00"));
+
+        Donation existingDonation = new Donation();
+        existingDonation.setId(88L);
+        existingDonation.setFestival(festival);
+        existingDonation.setDonorName("Devotee");
+        existingDonation.setAmount(new BigDecimal("1001.00"));
+        existingDonation.setPaymentStatus(Donation.PaymentStatus.COMPLETED);
+        existingDonation.setRazorpayPaymentId("pay_dup123");
+
+        Receipt existingReceipt = new Receipt(existingDonation, "REC-DUP-88", "HASH88");
+
+        when(donationRepository.findByRazorpayPaymentId("pay_dup123")).thenReturn(Optional.of(existingDonation));
+        when(receiptRepository.findByDonationId(88L)).thenReturn(Optional.of(existingReceipt));
+
+        DonationResponse resp = donationService.processVerifiedOnlineDonation(req);
+
+        assertNotNull(resp);
+        assertEquals("REC-DUP-88", resp.getReceiptNumber());
+
+        // Duplicate payment callback MUST NOT re-save donation or re-trigger email notifications
+        verify(donationRepository, never()).save(any());
+        verify(notificationService, never()).sendDonationConfirmation(any(), any());
+    }
 }
