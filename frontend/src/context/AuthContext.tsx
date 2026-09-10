@@ -30,8 +30,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('donationapp_token');
   };
 
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setUser(null);
+      localStorage.removeItem('donationapp_user');
+      localStorage.removeItem('donationapp_token');
+    };
+
+    window.addEventListener('auth-session-expired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('auth-session-expired', handleSessionExpired);
+    };
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user && !!localStorage.getItem('donationapp_token') }}>
       {children}
     </AuthContext.Provider>
   );

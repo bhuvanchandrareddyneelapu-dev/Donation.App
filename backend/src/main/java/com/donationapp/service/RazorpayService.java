@@ -20,13 +20,13 @@ import java.util.UUID;
 @Service
 public class RazorpayService {
 
-    @Value("${razorpay.key.id:${donationapp.razorpay.key-id:rzp_test_TLlH8RbESRqsdl}}")
+    @Value("${razorpay.key.id:}")
     private String razorpayKeyId;
 
-    @Value("${razorpay.key.secret:${donationapp.razorpay.key-secret:DSC6Nh5FDPk5kaaKbk1TKyRd}}")
+    @Value("${razorpay.key.secret:}")
     private String razorpayKeySecret;
 
-    @Value("${razorpay.webhook.secret:whsec_test_secret_12345}")
+    @Value("${razorpay.webhook.secret:}")
     private String webhookSecret;
 
     @Value("${donationapp.verified-upi-id:}")
@@ -36,10 +36,21 @@ public class RazorpayService {
         return razorpayKeyId;
     }
 
+    public boolean isConfigured() {
+        return razorpayKeyId != null && !razorpayKeyId.isBlank()
+                && razorpayKeySecret != null && !razorpayKeySecret.isBlank();
+    }
+
     public Map<String, Object> createOrder(BigDecimal amount, String currency, String receiptNo) {
+        if (!isConfigured()) {
+            throw new IllegalStateException(
+                "Razorpay payment gateway is not configured. " +
+                "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Render Dashboard environment variables."
+            );
+        }
+
         long amountInPaise = amount.multiply(new BigDecimal("100")).longValue();
         String curr = (currency != null && !currency.trim().isEmpty()) ? currency : "INR";
-
         Map<String, Object> response = new HashMap<>();
 
         try {

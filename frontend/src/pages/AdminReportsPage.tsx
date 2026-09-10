@@ -4,17 +4,24 @@ import api from '../services/api';
 
 import { downloadAuthenticatedFile } from '../utils/download';
 
+import { useNavigate } from 'react-router-dom';
+
 export const AdminReportsPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchReportsData = async () => {
     setLoading(true);
     try {
       const res = await api.get('/admin/dashboard-stats?festivalId=1');
       setStats(res.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load reports stats:', err);
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        navigate('/admin', { state: { sessionExpired: true }, replace: true });
+        return;
+      }
     } finally {
       setLoading(false);
     }

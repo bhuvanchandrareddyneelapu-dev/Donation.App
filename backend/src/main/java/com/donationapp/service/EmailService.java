@@ -33,7 +33,7 @@ public class EmailService {
     @Value("${donationapp.email.admin-email:${spring.mail.username:}}")
     private String adminEmail;
 
-    @Value("${donationapp.app-base-url:https://donation-app-frontend-150r.onrender.com}")
+    @Value("${donationapp.app-base-url:https://donation-app-6xky.onrender.com}")
     private String appBaseUrl;
 
     public EmailService(BrevoEmailProvider brevoEmailProvider,
@@ -62,13 +62,19 @@ public class EmailService {
     /**
      * Returns the active email provider in priority order:
      * 1. Brevo HTTPS API   — primary for Render production (no SMTP port restrictions)
-     * 2. Resend HTTPS API  — secondary fallback
+     * 2. Resend HTTPS API  — secondary fallback (only when Brevo is NOT configured)
      * 3. SMTP              — tertiary (local / traditional deployments only)
+     *
+     * IMPORTANT: When BREVO_API_KEY is set (Brevo isConfigured()), Brevo is ALWAYS
+     * the active provider. Failures (401, 400, 403) are propagated to the caller;
+     * we NEVER silently fall back to Resend when Brevo is configured.
      */
     public EmailProvider getActiveProvider() {
+        // Brevo is configured — always use it, never fall back silently
         if (brevoEmailProvider != null && brevoEmailProvider.isConfigured()) {
             return brevoEmailProvider;
         }
+        // Only fall back to Resend when Brevo is explicitly NOT configured (key missing)
         if (resendEmailProvider != null && resendEmailProvider.isConfigured()) {
             return resendEmailProvider;
         }
@@ -140,7 +146,7 @@ public class EmailService {
         try {
             String subject = "Donation.App Production Email Test";
             String formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a"));
-            String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-frontend-150r.onrender.com").replaceAll("/+$", "");
+            String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-6xky.onrender.com").replaceAll("/+$", "");
             EmailProvider provider = getActiveProvider();
             String pName = (provider != null && provider.getProviderName() != null) ? provider.getProviderName() : "resend";
             String pTransport = (provider != null && provider.getTransportType() != null) ? provider.getTransportType() : "https";
@@ -283,7 +289,7 @@ public class EmailService {
                 ? donation.getCreatedAt().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm a"))
                 : "N/A";
 
-        String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-frontend-150r.onrender.com").replaceAll("/+$", "");
+        String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-6xky.onrender.com").replaceAll("/+$", "");
         String qrHash = (receipt != null && receipt.getQrCodeHash() != null) ? receipt.getQrCodeHash() : receiptNo;
         String verificationUrl = baseUrl + "/verify/" + qrHash;
 
@@ -397,9 +403,17 @@ public class EmailService {
             logger.info("[EmailDispatch] Receipt email SUCCEEDED via provider {} to {} for receipt #{}",
                     provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
         } catch (Exception e) {
-            // Legacy fallback: if Resend is the active provider and returns 403 (sandbox restriction),
-            // attempt SMTP as fallback. This code path is NOT active when Brevo is the primary provider.
-            if (provider == resendEmailProvider && smtpEmailProvider != null && smtpEmailProvider.isConfigured()
+            // When Brevo is configured and fails, propagate immediately — never fall back to Resend.
+            // Only allow SMTP fallback when the active provider is explicitly Resend (Brevo key missing)
+            // and Resend returns 403 (sandbox domain restriction).
+            if (brevoEmailProvider != null && brevoEmailProvider.isConfigured()) {
+                // Brevo is configured: propagate the error with a clear message
+                String errMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
+                if (errMsg.contains("401")) {
+                    throw new RuntimeException("Brevo authentication failed (HTTP 401). Check BREVO_API_KEY in Render Dashboard.", e);
+                }
+                throw e;
+            } else if (provider == resendEmailProvider && smtpEmailProvider != null && smtpEmailProvider.isConfigured()
                     && e.getMessage() != null && e.getMessage().contains("403")) {
                 logger.warn("[EmailFallback] Resend domain restriction encountered for recipient {}. Falling back to SMTP provider...", maskEmail(recipientEmail));
                 smtpEmailProvider.sendDonorReceipt(donation, receipt, recipientEmail, subject, plainText, htmlText, pdfBytes, isResend);

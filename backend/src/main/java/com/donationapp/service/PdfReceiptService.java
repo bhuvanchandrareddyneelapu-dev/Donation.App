@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class PdfReceiptService {
 
-    @Value("${donationapp.app-base-url:https://donation-app-frontend-150r.onrender.com}")
+    @Value("${donationapp.app-base-url:https://donation-app-6xky.onrender.com}")
     private String appBaseUrl;
 
     public byte[] generateReceiptPdf(Donation donation, Receipt receipt) {
@@ -96,7 +96,7 @@ public class PdfReceiptService {
             document.add(amountPara);
 
             // QR Validation Code
-            String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-frontend-150r.onrender.com").replaceAll("/+$", "");
+            String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-6xky.onrender.com").replaceAll("/+$", "");
             String qrHash = receipt.getQrCodeHash() != null ? receipt.getQrCodeHash() : receipt.getReceiptNumber();
             String verifyUrl = baseUrl + "/verify/" + qrHash;
 

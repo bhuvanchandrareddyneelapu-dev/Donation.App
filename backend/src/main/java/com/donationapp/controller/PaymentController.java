@@ -46,10 +46,17 @@ public class PaymentController {
 
     @GetMapping("/config")
     public ResponseEntity<?> getPaymentConfig() {
+        String keyId = razorpayService.getRazorpayKeyId();
+        boolean isConfigured = keyId != null && !keyId.isBlank();
+
         Map<String, Object> config = new HashMap<>();
+        config.put("configured", isConfigured);
+        config.put("status", isConfigured ? "CONFIGURED" : "UNCONFIGURED");
+        config.put("provider", "razorpay");
+        config.put("currency", "INR");
         config.put("testMode", donationService.isTestMode());
         config.put("minAmount", donationService.isTestMode() ? donationService.getTestMinAmount() : new BigDecimal("1000.00"));
-        config.put("razorpayKeyId", razorpayService.getRazorpayKeyId());
+        config.put("razorpayKeyId", keyId != null ? keyId.trim() : "");
         return ResponseEntity.ok(config);
     }
 

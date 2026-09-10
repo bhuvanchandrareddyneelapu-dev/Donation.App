@@ -46,7 +46,7 @@ public class EmailServiceTest {
 
         ReflectionTestUtils.setField(emailService, "fromEmail", "notifications@donation.app");
         ReflectionTestUtils.setField(emailService, "adminEmail", "admin@donation.app");
-        ReflectionTestUtils.setField(emailService, "appBaseUrl", "https://donation-app-frontend-150r.onrender.com");
+        ReflectionTestUtils.setField(emailService, "appBaseUrl", "https://donation-app-6xky.onrender.com");
 
         Festival festival = new Festival();
         festival.setName("Unicode Estates Ganesh Chaturthi 2026");

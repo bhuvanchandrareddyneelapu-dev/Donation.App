@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Lock, Mail, ArrowRight, UserCheck } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ShieldCheck, Lock, Mail, ArrowRight, UserCheck, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -10,6 +10,9 @@ export const AdminLoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const sessionExpiredNotice = location.state?.sessionExpired;
 
   const demoAccounts = [
     { role: 'SUPER_ADMIN', name: 'Super Admin', email: 'superadmin@donation.app', pass: 'admin123', bg: 'bg-purple-600' },
@@ -75,6 +78,13 @@ export const AdminLoginPage: React.FC = () => {
           <h2 className="text-2xl font-extrabold text-white">Committee Admin Portal</h2>
           <p className="text-xs text-slate-400">For Super Admin, Festival Admin, Treasurer & Volunteers</p>
         </div>
+
+        {sessionExpiredNotice && (
+          <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-extrabold flex items-center justify-center space-x-2 animate-pulse">
+            <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+            <span>Your admin session has expired. Please log in again.</span>
+          </div>
+        )}
 
         {error && (
           <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold text-center">

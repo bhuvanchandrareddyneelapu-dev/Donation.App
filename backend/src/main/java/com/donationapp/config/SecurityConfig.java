@@ -44,14 +44,17 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/payments/**").permitAll()
                 .requestMatchers("/api/v1/donations/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/system/version").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/festivals/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/transparency/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/community/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/receipts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/analytics/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .anyRequest().permitAll() // Permissive for local dev demo convenience, guarded by @PreAuthorize where needed
+                .requestMatchers("/api/v1/admin/**").authenticated()
+                .anyRequest().authenticated()
             );
+
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

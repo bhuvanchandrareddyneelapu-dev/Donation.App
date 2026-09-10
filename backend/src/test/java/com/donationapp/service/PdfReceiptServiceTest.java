@@ -20,7 +20,7 @@ public class PdfReceiptServiceTest {
     @BeforeEach
     void setUp() {
         pdfReceiptService = new PdfReceiptService();
-        ReflectionTestUtils.setField(pdfReceiptService, "appBaseUrl", "https://donation-app-frontend-150r.onrender.com");
+        ReflectionTestUtils.setField(pdfReceiptService, "appBaseUrl", "https://donation-app-6xky.onrender.com");
     }
 
     @Test

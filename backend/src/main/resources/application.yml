@@ -49,9 +49,13 @@ donationapp:
   test-mode: ${DONATION_TEST_MODE:false}
   test-min-amount: ${DONATION_TEST_MIN_AMOUNT:10.00}
   verified-upi-id: ${VERIFIED_UPI_ID:}
-  app-base-url: ${APP_BASE_URL:https://donation-app-frontend-150r.onrender.com}
+  # Production frontend URL. Must be set via APP_BASE_URL env var in Render.
+  app-base-url: ${APP_BASE_URL:https://donation-app-6xky.onrender.com}
   jwt:
-    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    # JWT secret MUST be set via JWT_SECRET env var in Render Dashboard.
+    # Generate with: openssl rand -hex 32
+    # DO NOT commit real secrets to source control.
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
     expiration-ms: 86400000 # 24 hours
   email:
     resend-api-key: ${RESEND_API_KEY:}
@@ -64,12 +68,17 @@ donationapp:
 brevo:
   api-key: ${BREVO_API_KEY:}
 
+# Razorpay Payment Gateway
+# IMPORTANT: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET MUST be set via environment
+# variables in the Render Dashboard. Do NOT put real keys in source control.
+# The fallback values here are intentionally empty — payment will show as
+# unconfigured if env vars are not set, rather than using wrong credentials.
 razorpay:
   key:
-    id: ${RAZORPAY_KEY_ID:rzp_test_TLlH8RbESRqsdl}
-    secret: ${RAZORPAY_KEY_SECRET:DSC6Nh5FDPk5kaaKbk1TKyRd}
+    id: ${RAZORPAY_KEY_ID:}
+    secret: ${RAZORPAY_KEY_SECRET:}
   webhook:
-    secret: ${RAZORPAY_WEBHOOK_SECRET:whsec_test_secret_12345}
+    secret: ${RAZORPAY_WEBHOOK_SECRET:}
 
 springdoc:
   api-docs:

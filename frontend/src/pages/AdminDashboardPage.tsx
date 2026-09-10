@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { DollarSign, PlusCircle, Settings, Calendar, Bell, FileText, Users, Download, Send, RotateCcw, ShieldCheck, AlertCircle, RefreshCw, Eye, X, Mail, CheckCircle, XCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { DollarSign, PlusCircle, Settings, Calendar, Bell, FileText, Users, Download, Send, RotateCcw, ShieldCheck, AlertCircle, RefreshCw, Eye, X, Mail, CheckCircle, XCircle, Server, Database, CreditCard } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { AddCashDonationModal } from '../components/admin/AddCashDonationModal';
 import { downloadAuthenticatedFile } from '../utils/download';
 
 export const AdminDashboardPage: React.FC = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [donations, setDonations] = useState<any[]>([]);
   const [emailStatus, setEmailStatus] = useState<any>(null);
+  const [systemVersion, setSystemVersion] = useState<any>(null);
+  const [systemDiagnostics, setSystemDiagnostics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAddCashModal, setShowAddCashModal] = useState(false);
 
@@ -20,33 +24,79 @@ export const AdminDashboardPage: React.FC = () => {
   const [toastMsg, setToastMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const navigate = useNavigate();
+
   const fetchDashboardData = async () => {
     setLoading(true);
+    setErrorMsg('');
     try {
-      const [statsRes, donationsRes, emailStatusRes] = await Promise.all([
-        api.get('/admin/dashboard-stats?festivalId=1').catch(() => null),
-        api.get('/donations/festival/1').catch(() => null),
-        api.get('/admin/email/status').catch(() => null),
+      // Use allSettled so a single 403 doesn't wipe out ALL dashboard data.
+      // Each request is independent: auth failure on email/status won't zero out donations.
+      const [statsResult, donationsResult, emailStatusResult] = await Promise.allSettled([
+        api.get('/admin/dashboard-stats?festivalId=1'),
+        api.get('/donations/festival/1'),
+        api.get('/admin/email/status'),
       ]);
 
-      if (statsRes?.data) {
-        setStats(statsRes.data);
+      // Check if stats or email status returned 401/403 (auth failure = session expired)
+      const authFailed = [statsResult, emailStatusResult].some(
+        (r) => r.status === 'rejected' &&
+          (r.reason?.response?.status === 401 || r.reason?.response?.status === 403)
+      );
+      if (authFailed) {
+        navigate('/admin', { state: { sessionExpired: true }, replace: true });
+        return;
       }
-      if (donationsRes?.data) {
-        setDonations(donationsRes.data);
+
+      if (statsResult.status === 'fulfilled' && statsResult.value?.data) {
+        setStats(statsResult.value.data);
       }
-      if (emailStatusRes?.data) {
-        setEmailStatus(emailStatusRes.data);
+      if (donationsResult.status === 'fulfilled' && donationsResult.value?.data) {
+        setDonations(donationsResult.value.data);
+      } else if (donationsResult.status === 'rejected') {
+        const status = donationsResult.reason?.response?.status;
+        if (status !== 401 && status !== 403) {
+          console.error('Failed to load donations:', donationsResult.reason?.message);
+        }
       }
-    } catch (err) {
+      if (emailStatusResult.status === 'fulfilled' && emailStatusResult.value?.data) {
+        setEmailStatus(emailStatusResult.value.data);
+      } else if (emailStatusResult.status === 'rejected') {
+        // Email status unavailable (could be misconfigured, not an auth error)
+        setEmailStatus(null);
+      }
+    } catch (err: any) {
       console.error('Failed to load supervisor dashboard data:', err);
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        navigate('/admin', { state: { sessionExpired: true }, replace: true });
+        return;
+      }
+      setErrorMsg(err?.response?.data?.message || 'Failed to load supervisor dashboard data. Please check connection and refresh.');
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchSystemInfo = async () => {
+    try {
+      const versionRes = await api.get('/system/version');
+      if (versionRes?.data) setSystemVersion(versionRes.data);
+    } catch {
+      // Non-critical: version endpoint failure doesn't affect dashboard
+    }
+    if (user?.role === 'SUPER_ADMIN' || user?.role === 'HEAD') {
+      try {
+        const diagRes = await api.get('/admin/system/diagnostics');
+        if (diagRes?.data) setSystemDiagnostics(diagRes.data);
+      } catch {
+        // Non-critical
+      }
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
+    fetchSystemInfo();
 
     const handleDonationUpdated = () => {
       fetchDashboardData();
@@ -320,7 +370,7 @@ export const AdminDashboardPage: React.FC = () => {
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">Email Provider</span>
               <div className="font-mono font-bold text-white mt-0.5 truncate uppercase">
-                {emailStatus?.provider ? String(emailStatus.provider).toUpperCase() : 'RESEND'}
+                {emailStatus?.provider ? String(emailStatus.provider).toUpperCase() : 'UNAVAILABLE'}
               </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
@@ -332,7 +382,7 @@ export const AdminDashboardPage: React.FC = () => {
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">API Key / Auth</span>
               <div className="font-mono font-bold text-emerald-400 mt-0.5">
-                {(emailStatus?.apiConfigured ?? emailStatus?.smtpAuth ?? (emailStatus?.configured && emailStatus?.provider === 'resend')) ? 'ENABLED' : 'MISSING'}
+                {(emailStatus?.apiConfigured ?? emailStatus?.keyPresent ?? emailStatus?.smtpAuth ?? false) ? 'ENABLED' : 'MISSING'}
               </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
@@ -354,6 +404,71 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-slate-500 text-[10px] uppercase font-bold">Admin Recipient</span>
               <div className="font-mono font-bold text-slate-300 mt-0.5 truncate">
                 {emailStatus?.adminEmail || 'Missing'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Backend System Diagnostics Panel */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+          <div className="flex items-center space-x-3 border-b border-slate-800 pb-4">
+            <div className="p-3 rounded-2xl bg-slate-800 border border-slate-700 text-slate-300">
+              <Server className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-white flex items-center space-x-2">
+                <span>BACKEND SYSTEM STATUS</span>
+                {systemVersion && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    LIVE
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs text-slate-400">
+                Backend: <span className="font-mono text-slate-300">{systemVersion?.backendUrl || 'Loading...'}</span>
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Backend</span>
+              <div className="font-mono font-bold text-emerald-400 mt-0.5">
+                {systemDiagnostics?.backend || (systemVersion ? 'UP' : 'CHECKING...')}
+              </div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Git Commit</span>
+              <div className="font-mono font-bold text-slate-300 mt-0.5 truncate text-[10px]">
+                {systemVersion?.gitCommit || '—'}
+              </div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Database</span>
+              <div className={`font-mono font-bold mt-0.5 ${systemDiagnostics?.database === 'UP' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {systemDiagnostics?.database || (systemVersion ? 'N/A' : '—')}
+              </div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Brevo</span>
+              <div className={`font-mono font-bold mt-0.5 ${systemDiagnostics?.brevo === 'CONFIGURED' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {systemDiagnostics?.brevo || '—'}
+              </div>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">Razorpay</span>
+              <div className={`font-mono font-bold mt-0.5 ${systemDiagnostics?.razorpay === 'CONFIGURED' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {systemDiagnostics?.razorpay || '—'}
+              </div>
+              {systemDiagnostics?.razorpayKeyIdPrefix && (
+                <div className="text-[9px] text-slate-400 mt-0.5 font-mono">
+                  Key: {systemDiagnostics.razorpayKeyIdPrefix}
+                </div>
+              )}
+            </div>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span className="text-slate-500 text-[10px] uppercase font-bold">JWT</span>
+              <div className={`font-mono font-bold mt-0.5 ${systemDiagnostics?.jwt === 'CONFIGURED' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {systemDiagnostics?.jwt || '—'}
               </div>
             </div>
           </div>

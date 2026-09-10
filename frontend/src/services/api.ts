@@ -27,4 +27,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const isAuthEndpoint = error.config && error.config.url && error.config.url.includes('/auth/login');
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('donationapp_token');
+        localStorage.removeItem('donationapp_user');
+        window.dispatchEvent(new Event('auth-session-expired'));
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

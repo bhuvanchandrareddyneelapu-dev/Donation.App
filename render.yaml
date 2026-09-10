@@ -9,6 +9,11 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+    envVars:
+      # IMPORTANT: VITE_* vars are embedded at BUILD TIME by Vite.
+      # Changing this value requires a full frontend redeploy, not just a restart.
+      - key: VITE_API_BASE_URL
+        value: https://donation-app-backend-tq17.onrender.com/api/v1
 
   - type: web
     name: donation-app-backend
@@ -17,13 +22,37 @@ services:
     dockerfilePath: Dockerfile
     healthCheckPath: /health
     envVars:
-      - key: RESEND_API_KEY
+      # === EMAIL CONFIGURATION ===
+      # Primary email provider: Brevo (HTTPS API — no SMTP port restrictions on Render Free)
+      - key: BREVO_API_KEY
         sync: false
       - key: MAIL_FROM
         sync: false
       - key: DONATION_ADMIN_EMAIL
         sync: false
+
+      # === APP CONFIGURATION ===
       - key: APP_BASE_URL
+        sync: false
+        # Set this to: https://donation-app-6xky.onrender.com
+
+      # === PAYMENT CONFIGURATION ===
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: VERIFIED_UPI_ID
+        sync: false
+
+      # === SECURITY ===
+      # Generate with: openssl rand -hex 32
+      - key: JWT_SECRET
+        sync: false
+
+      # === LEGACY / SMTP (not required when Brevo is configured) ===
+      - key: RESEND_API_KEY
         sync: false
       - key: SPRING_MAIL_HOST
         sync: false
@@ -33,4 +62,3 @@ services:
         sync: false
       - key: SPRING_MAIL_PASSWORD
         sync: false
-

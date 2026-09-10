@@ -20,6 +20,8 @@ import { PublicDonorsPage } from './pages/PublicDonorsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminReportsPage } from './pages/AdminReportsPage';
 
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -55,14 +57,14 @@ export const App: React.FC = () => {
                 <Route path="/verify/:hash" element={<VerifyReceiptPage />} />
                 <Route path="/history" element={<DonorHistoryPage />} />
                 <Route path="/donor/history" element={<DonorHistoryPage />} />
-                <Route path="/dashboard" element={<AdminDashboardPage />} />
+                <Route path="/dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
                 <Route path="/admin" element={<AdminLoginPage />} />
-                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-                <Route path="/admin/donations" element={<AdminDashboardPage />} />
-                <Route path="/admin/cash-donation" element={<AdminDashboardPage />} />
-                <Route path="/admin/reports" element={<AdminReportsPage />} />
-                <Route path="/admin/festival" element={<AdminFestivalManagementPage />} />
-                <Route path="/admin/settings" element={<AdminFestivalManagementPage />} />
+                <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+                <Route path="/admin/donations" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+                <Route path="/admin/cash-donation" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+                <Route path="/admin/reports" element={<ProtectedRoute><AdminReportsPage /></ProtectedRoute>} />
+                <Route path="/admin/festival" element={<ProtectedRoute><AdminFestivalManagementPage /></ProtectedRoute>} />
+                <Route path="/admin/settings" element={<ProtectedRoute><AdminFestivalManagementPage /></ProtectedRoute>} />
                 <Route path="/login" element={<AdminLoginPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
