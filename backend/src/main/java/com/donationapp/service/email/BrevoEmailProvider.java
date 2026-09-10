@@ -2,6 +2,7 @@ package com.donationapp.service.email;
 
 import com.donationapp.entity.Donation;
 import com.donationapp.entity.Receipt;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 
 /**
@@ -50,6 +53,21 @@ public class BrevoEmailProvider implements EmailProvider {
         this.restTemplate = restTemplate;
     }
 
+    private String getCleanApiKey() {
+        return apiKey != null ? apiKey.trim() : "";
+    }
+
+    @PostConstruct
+    public void initDiagnostics() {
+        String cleanKey = getCleanApiKey();
+        boolean keyPresent = !cleanKey.isBlank();
+        int keyLength = cleanKey.length();
+        String fingerprint = getSafeFingerprint(cleanKey);
+
+        logger.info("[BrevoConfig] Initialized BrevoEmailProvider: provider=brevo, transport=https, configured={}, keyPresent={}, keyLength={}, keyFingerprint={}",
+                isConfigured(), keyPresent, keyLength, fingerprint);
+    }
+
     @Override
     public String getProviderName() {
         return "brevo";
@@ -62,18 +80,27 @@ public class BrevoEmailProvider implements EmailProvider {
 
     @Override
     public boolean isConfigured() {
-        return apiKey != null && !apiKey.isBlank()
+        String cleanKey = getCleanApiKey();
+        return !cleanKey.isBlank()
                 && fromEmail != null && !fromEmail.isBlank()
                 && adminEmail != null && !adminEmail.isBlank();
     }
 
     @Override
     public Map<String, Object> getStatusMap() {
+        String cleanKey = getCleanApiKey();
+        boolean configured = isConfigured();
+
         Map<String, Object> map = new HashMap<>();
-        map.put("configured", isConfigured());
+        map.put("configured", configured);
+        map.put("status", configured ? "CONFIGURED" : "UNCONFIGURED");
+        map.put("connectivity", "UNVERIFIED");
         map.put("provider", getProviderName());
         map.put("transport", getTransportType());
-        map.put("apiConfigured", apiKey != null && !apiKey.isBlank());
+        map.put("keyPresent", !cleanKey.isBlank());
+        map.put("keyLength", cleanKey.length());
+        map.put("keyFingerprint", getSafeFingerprint(cleanKey));
+        map.put("apiConfigured", !cleanKey.isBlank());
         map.put("fromConfigured", fromEmail != null && !fromEmail.isBlank());
         map.put("adminRecipientConfigured", adminEmail != null && !adminEmail.isBlank());
         map.put("fromEmail", maskEmail(fromEmail));
@@ -174,14 +201,14 @@ public class BrevoEmailProvider implements EmailProvider {
 
     /**
      * Executes the Brevo API call.
-     * Auth header is "api-key": value — NOT Bearer token (Brevo uses its own scheme).
+     * Auth header is strictly "api-key": <BREVO_API_KEY> (trimmed).
      * Never logs the actual api-key value.
      */
     private void executeBrevoApiCall(Map<String, Object> payload) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("api-key", apiKey.trim());  // Brevo auth — not Bearer
+            headers.set("api-key", getCleanApiKey());  // Brevo auth — strictly api-key, trimmed
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
             ResponseEntity<String> response =
@@ -191,22 +218,35 @@ public class BrevoEmailProvider implements EmailProvider {
                 logger.info("[BrevoAPI] Email accepted by Brevo API: HTTP {}",
                         response.getStatusCode().value());
             } else {
+                String sanitizedBody = sanitizeOutput(response.getBody());
                 throw new RuntimeException(
                         "Brevo API rejected request with HTTP status "
-                        + response.getStatusCode().value() + ": " + response.getBody());
+                        + response.getStatusCode().value() + ": " + sanitizedBody);
             }
         } catch (HttpStatusCodeException hsce) {
-            String errBody = hsce.getResponseBodyAsString();
-            logger.error("[BrevoAPI] HTTP error from Brevo API: Status {} - {}",
-                    hsce.getStatusCode().value(), errBody);
-            throw new RuntimeException(
-                    "Brevo API failed with status " + hsce.getStatusCode().value()
-                    + ": " + errBody, hsce);
+            String sanitizedErrBody = sanitizeOutput(hsce.getResponseBodyAsString());
+            int statusCode = hsce.getStatusCode().value();
+            logger.error("[BrevoAPI] HTTP error from Brevo API: Status {} - {}", statusCode, sanitizedErrBody);
+
+            if (statusCode == 401) {
+                throw new RuntimeException(
+                        "Brevo authentication failed. Check BREVO_API_KEY in Render. Details: " + sanitizedErrBody, hsce);
+            } else if (statusCode == 400) {
+                throw new RuntimeException(
+                        "Brevo request validation failed (HTTP 400): " + sanitizedErrBody, hsce);
+            } else if (statusCode == 403) {
+                throw new RuntimeException(
+                        "Brevo account/permission restricted (HTTP 403): " + sanitizedErrBody, hsce);
+            } else {
+                throw new RuntimeException(
+                        "Brevo API failed with status " + statusCode + ": " + sanitizedErrBody, hsce);
+            }
         } catch (RuntimeException re) {
             throw re;
         } catch (Exception e) {
-            logger.error("[BrevoAPI] Failed to call Brevo HTTPS API: {}", e.getMessage());
-            throw new RuntimeException("Failed to call Brevo HTTPS API: " + e.getMessage(), e);
+            String sanitizedMsg = sanitizeOutput(e.getMessage());
+            logger.error("[BrevoAPI] Failed to call Brevo HTTPS API: {}", sanitizedMsg);
+            throw new RuntimeException("Failed to call Brevo HTTPS API: " + sanitizedMsg, e);
         }
     }
 
@@ -234,5 +274,34 @@ public class BrevoEmailProvider implements EmailProvider {
         int atIndex = email.indexOf("@");
         if (atIndex <= 1) return "*@*" + email.substring(atIndex);
         return email.substring(0, 1) + "***" + email.substring(atIndex - 1);
+    }
+
+    private String getSafeFingerprint(String key) {
+        if (key == null || key.isBlank()) return "NONE";
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(key.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (int i = 0; i < Math.min(4, hash.length); i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString().toLowerCase();
+        } catch (Exception e) {
+            return "UNKNOWN";
+        }
+    }
+
+    private String sanitizeOutput(String input) {
+        if (input == null) return "";
+        String cleanKey = getCleanApiKey();
+        String result = input;
+        if (!cleanKey.isBlank()) {
+            result = result.replace(cleanKey, "[REDACTED_API_KEY]");
+        }
+        // Redact any xkeysib Brevo API key patterns if present
+        result = result.replaceAll("xkeysib-[a-zA-Z0-9_-]+", "[REDACTED_API_KEY]");
+        return result;
     }
 }

@@ -338,7 +338,10 @@ export const AdminDashboardPage: React.FC = () => {
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">API / Provider Status</span>
               <div className="font-mono font-bold text-emerald-400 mt-0.5">
-                {emailStatus?.configured ? 'READY' : 'UNCONFIGURED'}
+                {emailStatus?.status || (emailStatus?.configured ? 'CONFIGURED' : 'UNCONFIGURED')}
+              </div>
+              <div className="text-[9px] text-slate-400 mt-0.5">
+                Connectivity: {emailStatus?.connectivity || 'UNVERIFIED'}
               </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">

@@ -276,11 +276,32 @@ public class BrevoEmailProviderTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void testSendDonorReceipt_Http4xx_ThrowsRuntimeException() {
+    void testSendDonorReceipt_TrimsWhitespaceFromApiKeyHeader() throws Exception {
+        // Test key with leading and trailing spaces
+        ReflectionTestUtils.setField(brevoEmailProvider, "apiKey", "   " + TEST_API_KEY + "   \n");
+
+        mockServer.expect(requestTo(BREVO_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("api-key", TEST_API_KEY))  // Header must receive trimmed key
+                .andRespond(withSuccess("{\"messageId\":\"<msg-trim@brevo>\"}", MediaType.APPLICATION_JSON));
+
+        assertDoesNotThrow(() -> brevoEmailProvider.sendDonorReceipt(
+                donation, receipt, DONOR_EMAIL, "Thank You", "Plain text", "<h1>HTML</h1>",
+                null, false
+        ));
+        mockServer.verify();
+    }
+
+    // -------------------------------------------------------------------------
+    // HTTP error handling
+    // -------------------------------------------------------------------------
+
+    @Test
+    void testSendDonorReceipt_Http401_ThrowsClearAuthenticationException() {
         mockServer.expect(requestTo(BREVO_URL))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED)
-                        .body("{\"code\":\"unauthorized\",\"message\":\"Invalid API key\"}")
+                        .body("{\"code\":\"unauthorized\",\"message\":\"Invalid API key: " + TEST_API_KEY + "\"}")
                         .contentType(MediaType.APPLICATION_JSON));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
@@ -290,8 +311,50 @@ public class BrevoEmailProviderTest {
                 )
         );
 
-        assertTrue(ex.getMessage().contains("Brevo API failed with status 401"),
-                "Exception message should reference HTTP 401. Actual: " + ex.getMessage());
+        assertTrue(ex.getMessage().contains("Brevo authentication failed. Check BREVO_API_KEY in Render."),
+                "Exception message should give clear Render instruction. Actual: " + ex.getMessage());
+        assertFalse(ex.getMessage().contains(TEST_API_KEY),
+                "Exception message must sanitize secret API key.");
+        mockServer.verify();
+    }
+
+    @Test
+    void testSendDonorReceipt_Http400_ThrowsValidationException() {
+        mockServer.expect(requestTo(BREVO_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST)
+                        .body("{\"code\":\"invalid_parameter\",\"message\":\"Invalid sender email\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                brevoEmailProvider.sendDonorReceipt(
+                        donation, receipt, DONOR_EMAIL, "Subject", "Plain", "<h1>HTML</h1>",
+                        null, false
+                )
+        );
+
+        assertTrue(ex.getMessage().contains("Brevo request validation failed (HTTP 400)"),
+                "Exception message should identify HTTP 400 validation error. Actual: " + ex.getMessage());
+        mockServer.verify();
+    }
+
+    @Test
+    void testSendDonorReceipt_Http403_ThrowsPermissionException() {
+        mockServer.expect(requestTo(BREVO_URL))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.FORBIDDEN)
+                        .body("{\"code\":\"forbidden\",\"message\":\"Account suspended or restricted\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                brevoEmailProvider.sendDonorReceipt(
+                        donation, receipt, DONOR_EMAIL, "Subject", "Plain", "<h1>HTML</h1>",
+                        null, false
+                )
+        );
+
+        assertTrue(ex.getMessage().contains("Brevo account/permission restricted (HTTP 403)"),
+                "Exception message should identify HTTP 403 account restriction. Actual: " + ex.getMessage());
         mockServer.verify();
     }
 
@@ -330,16 +393,21 @@ public class BrevoEmailProviderTest {
     }
 
     // -------------------------------------------------------------------------
-    // getStatusMap() — no secrets exposed
+    // getStatusMap() — safe diagnostics, no secrets exposed
     // -------------------------------------------------------------------------
 
     @Test
-    void testGetStatusMap_ContainsBrevoProvider() {
+    void testGetStatusMap_ContainsBrevoProviderAndSafeDiagnostics() {
         var statusMap = brevoEmailProvider.getStatusMap();
         assertEquals("brevo", statusMap.get("provider"));
         assertEquals("https", statusMap.get("transport"));
+        assertEquals("CONFIGURED", statusMap.get("status"));
+        assertEquals("UNVERIFIED", statusMap.get("connectivity"));
         assertTrue((Boolean) statusMap.get("configured"));
-        assertTrue((Boolean) statusMap.get("apiConfigured"));
+        assertTrue((Boolean) statusMap.get("keyPresent"));
+        assertEquals(TEST_API_KEY.length(), statusMap.get("keyLength"));
+        assertNotNull(statusMap.get("keyFingerprint"));
+        assertNotEquals("NONE", statusMap.get("keyFingerprint"));
         assertTrue((Boolean) statusMap.get("fromConfigured"));
         assertTrue((Boolean) statusMap.get("adminRecipientConfigured"));
     }

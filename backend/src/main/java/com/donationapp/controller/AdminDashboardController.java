@@ -141,6 +141,13 @@ public class AdminDashboardController {
         return ResponseEntity.ok(Map.of("message", "Production test email sent successfully. Check the admin inbox."));
     }
 
+    @PostMapping("/email/test-connectivity")
+    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN', 'TREASURER', 'VOLUNTEER')")
+    public ResponseEntity<?> testConnectivity() {
+        emailService.sendAdminTestEmail();
+        return ResponseEntity.ok(Map.of("message", "Production email connectivity test passed successfully."));
+    }
+
     @GetMapping("/audit-logs")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<AuditLog>> getAuditLogs() {

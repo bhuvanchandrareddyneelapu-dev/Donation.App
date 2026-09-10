@@ -232,6 +232,24 @@ public class EmailServiceTest {
     }
 
     @Test
+    void testSendDonationReceiptEmail_Brevo401_DoesNotFallbackToResend() throws Exception {
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
+        when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-bytes".getBytes());
+        donation.setDonorEmail("donor.brevo@example.com");
+
+        doThrow(new RuntimeException("Brevo authentication failed. Check BREVO_API_KEY in Render."))
+                .when(brevoEmailProvider)
+                .sendDonorReceipt(any(), any(), anyString(), anyString(), anyString(), anyString(), any(), anyBoolean());
+
+        assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
+
+        // Brevo fails with 401 -> must NOT call Resend or SMTP
+        verify(brevoEmailProvider, times(1)).sendDonorReceipt(any(), any(), eq("donor.brevo@example.com"), any(), any(), any(), any(), eq(false));
+        verify(resendEmailProvider, never()).sendDonorReceipt(any(), any(), any(), any(), any(), any(), any(), anyBoolean());
+        verify(smtpEmailProvider, never()).sendDonorReceipt(any(), any(), any(), any(), any(), any(), any(), anyBoolean());
+    }
+
+    @Test
     void testSendDonationReceiptEmail_Resend403FallbackToSmtp() throws Exception {
         // This test verifies the legacy fallback when Resend is the active provider.
         // When Brevo is active this code path is not reached.
