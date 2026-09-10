@@ -58,6 +58,12 @@ donationapp:
     from: ${MAIL_FROM:donations@unicodeestates.in}
     admin-email: ${DONATION_ADMIN_EMAIL:${spring.mail.username:admin@donation.app}}
 
+# Brevo Transactional Email API
+# API key must be set via BREVO_API_KEY environment variable in Render Dashboard.
+# Do NOT put the actual key here.
+brevo:
+  api-key: ${BREVO_API_KEY:}
+
 razorpay:
   key:
     id: ${RAZORPAY_KEY_ID:rzp_test_TLlH8RbESRqsdl}

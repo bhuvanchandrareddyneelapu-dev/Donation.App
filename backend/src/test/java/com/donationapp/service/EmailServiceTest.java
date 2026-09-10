@@ -3,6 +3,7 @@ package com.donationapp.service;
 import com.donationapp.entity.Donation;
 import com.donationapp.entity.Festival;
 import com.donationapp.entity.Receipt;
+import com.donationapp.service.email.BrevoEmailProvider;
 import com.donationapp.service.email.ResendEmailProvider;
 import com.donationapp.service.email.SmtpEmailProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,9 @@ import static org.mockito.Mockito.*;
 public class EmailServiceTest {
 
     @Mock
+    private BrevoEmailProvider brevoEmailProvider;
+
+    @Mock
     private ResendEmailProvider resendEmailProvider;
 
     @Mock
@@ -38,7 +42,7 @@ public class EmailServiceTest {
 
     @BeforeEach
     void setUp() {
-        emailService = new EmailService(resendEmailProvider, smtpEmailProvider, pdfReceiptService);
+        emailService = new EmailService(brevoEmailProvider, resendEmailProvider, smtpEmailProvider, pdfReceiptService);
 
         ReflectionTestUtils.setField(emailService, "fromEmail", "notifications@donation.app");
         ReflectionTestUtils.setField(emailService, "adminEmail", "admin@donation.app");
@@ -63,7 +67,16 @@ public class EmailServiceTest {
     }
 
     @Test
-    void testIsConfigured_ReturnsTrueWhenResendConfigured() {
+    void testIsConfigured_ReturnsTrueWhenBrevoConfigured() {
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
+
+        assertTrue(emailService.isConfigured());
+        assertEquals(brevoEmailProvider, emailService.getActiveProvider());
+    }
+
+    @Test
+    void testIsConfigured_ReturnsTrueWhenResendConfiguredAsFallback() {
+        when(brevoEmailProvider.isConfigured()).thenReturn(false);
         when(resendEmailProvider.isConfigured()).thenReturn(true);
 
         assertTrue(emailService.isConfigured());
@@ -72,6 +85,7 @@ public class EmailServiceTest {
 
     @Test
     void testIsConfigured_ReturnsTrueWhenSmtpConfiguredAsFallback() {
+        when(brevoEmailProvider.isConfigured()).thenReturn(false);
         when(resendEmailProvider.isConfigured()).thenReturn(false);
         when(smtpEmailProvider.isConfigured()).thenReturn(true);
 
@@ -81,6 +95,7 @@ public class EmailServiceTest {
 
     @Test
     void testIsConfigured_ReturnsFalseWhenNeitherConfigured() {
+        when(brevoEmailProvider.isConfigured()).thenReturn(false);
         when(resendEmailProvider.isConfigured()).thenReturn(false);
         when(smtpEmailProvider.isConfigured()).thenReturn(false);
 
@@ -88,28 +103,28 @@ public class EmailServiceTest {
     }
 
     @Test
-    void testGetEmailStatusMap_ReportsProviderDetails() {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
-        when(resendEmailProvider.getStatusMap()).thenReturn(Map.of(
-                "provider", "resend",
+    void testGetEmailStatusMap_ReportsBrevoProviderDetails() {
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.getStatusMap()).thenReturn(Map.of(
+                "provider", "brevo",
                 "transport", "https",
                 "apiConfigured", true
         ));
 
         Map<String, Object> status = emailService.getEmailStatusMap();
         assertTrue((Boolean) status.get("configured"));
-        assertEquals("resend", status.get("provider"));
+        assertEquals("brevo", status.get("provider"));
         assertEquals("https", status.get("transport"));
     }
 
     @Test
     void testResendDonationReceiptEmail_Success() throws Exception {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
         when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-dummy".getBytes());
 
         assertDoesNotThrow(() -> emailService.resendDonationReceiptEmail(donation, receipt));
 
-        verify(resendEmailProvider, times(1)).sendDonorReceipt(
+        verify(brevoEmailProvider, times(1)).sendDonorReceipt(
                 eq(donation), eq(receipt), eq("donor@example.com"),
                 contains("Unicode Estates"), contains("Dear N. LEELA"), contains("<!DOCTYPE html>"), any(), eq(true)
         );
@@ -118,7 +133,7 @@ public class EmailServiceTest {
 
     @Test
     void testResendDonationReceiptEmail_MissingDonorEmail_ThrowsException() {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
         donation.setDonorEmail(null);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
@@ -130,9 +145,9 @@ public class EmailServiceTest {
 
     @Test
     void testResendDonationReceiptEmail_ProviderException_ThrowsException() throws Exception {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
         when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-dummy".getBytes());
-        doThrow(new RuntimeException("Resend API 401 Unauthorized")).when(resendEmailProvider)
+        doThrow(new RuntimeException("Brevo API 401 Unauthorized")).when(brevoEmailProvider)
                 .sendDonorReceipt(any(), any(), anyString(), anyString(), anyString(), anyString(), any(), anyBoolean());
 
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
@@ -144,11 +159,11 @@ public class EmailServiceTest {
 
     @Test
     void testSendAdminTestEmail_Success() throws Exception {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
 
         assertDoesNotThrow(() -> emailService.sendAdminTestEmail());
 
-        verify(resendEmailProvider, times(1)).sendTestEmail(
+        verify(brevoEmailProvider, times(1)).sendTestEmail(
                 eq("Donation.App Production Email Test"),
                 contains("Donation.App Email Delivery Test"),
                 contains("Donation.App Email Delivery Test"),
@@ -158,6 +173,7 @@ public class EmailServiceTest {
 
     @Test
     void testSendAdminTestEmail_Unconfigured_ThrowsIllegalStateException() {
+        when(brevoEmailProvider.isConfigured()).thenReturn(false);
         when(resendEmailProvider.isConfigured()).thenReturn(false);
         when(smtpEmailProvider.isConfigured()).thenReturn(false);
 
@@ -170,11 +186,11 @@ public class EmailServiceTest {
 
     @Test
     void testSendAdminDonationNotificationEmail_Success() throws Exception {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
 
         assertDoesNotThrow(() -> emailService.sendAdminDonationNotificationEmail(donation, receipt));
 
-        verify(resendEmailProvider, times(1)).sendAdminNotification(
+        verify(brevoEmailProvider, times(1)).sendAdminNotification(
                 eq(donation), eq(receipt), eq("admin@donation.app"),
                 contains("New Contribution"), contains("Donation.App Committee Admin Notification")
         );
@@ -182,9 +198,9 @@ public class EmailServiceTest {
 
     @Test
     void testSendDonationReceiptEmail_DoesNotRollbackOnProviderError() throws Exception {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
         when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-dummy".getBytes());
-        doThrow(new RuntimeException("API Connection Failed")).when(resendEmailProvider)
+        doThrow(new RuntimeException("API Connection Failed")).when(brevoEmailProvider)
                 .sendDonorReceipt(any(), any(), anyString(), anyString(), anyString(), anyString(), any(), anyBoolean());
 
         // Should log error without throwing exception (safe for core transaction)
@@ -193,13 +209,13 @@ public class EmailServiceTest {
 
     @Test
     void testSendDonationReceiptEmail_UsesDynamicDonorEmailFromDonationEntity() throws Exception {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
         when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-bytes".getBytes());
         donation.setDonorEmail("dynamic.devotee.99@example.org");
 
         assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
 
-        verify(resendEmailProvider, times(1)).sendDonorReceipt(
+        verify(brevoEmailProvider, times(1)).sendDonorReceipt(
                 eq(donation), eq(receipt), eq("dynamic.devotee.99@example.org"),
                 anyString(), anyString(), anyString(), eq("%PDF-bytes".getBytes()), eq(false)
         );
@@ -207,16 +223,19 @@ public class EmailServiceTest {
 
     @Test
     void testSendDonationReceiptEmail_InvalidEmailFormat_SkippedSafely() throws Exception {
-        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(brevoEmailProvider.isConfigured()).thenReturn(true);
         donation.setDonorEmail("invalid-email-address");
 
         assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
 
-        verify(resendEmailProvider, never()).sendDonorReceipt(any(), any(), any(), any(), any(), any(), any(), anyBoolean());
+        verify(brevoEmailProvider, never()).sendDonorReceipt(any(), any(), any(), any(), any(), any(), any(), anyBoolean());
     }
 
     @Test
     void testSendDonationReceiptEmail_Resend403FallbackToSmtp() throws Exception {
+        // This test verifies the legacy fallback when Resend is the active provider.
+        // When Brevo is active this code path is not reached.
+        when(brevoEmailProvider.isConfigured()).thenReturn(false);
         when(resendEmailProvider.isConfigured()).thenReturn(true);
         when(smtpEmailProvider.isConfigured()).thenReturn(true);
         when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-bytes".getBytes());

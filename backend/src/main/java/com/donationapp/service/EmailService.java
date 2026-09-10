@@ -2,6 +2,7 @@ package com.donationapp.service;
 
 import com.donationapp.entity.Donation;
 import com.donationapp.entity.Receipt;
+import com.donationapp.service.email.BrevoEmailProvider;
 import com.donationapp.service.email.EmailProvider;
 import com.donationapp.service.email.ResendEmailProvider;
 import com.donationapp.service.email.SmtpEmailProvider;
@@ -21,6 +22,7 @@ public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
+    private final BrevoEmailProvider brevoEmailProvider;
     private final ResendEmailProvider resendEmailProvider;
     private final SmtpEmailProvider smtpEmailProvider;
     private final PdfReceiptService pdfReceiptService;
@@ -34,9 +36,11 @@ public class EmailService {
     @Value("${donationapp.app-base-url:https://donation-app-frontend-150r.onrender.com}")
     private String appBaseUrl;
 
-    public EmailService(ResendEmailProvider resendEmailProvider,
+    public EmailService(BrevoEmailProvider brevoEmailProvider,
+                        ResendEmailProvider resendEmailProvider,
                         SmtpEmailProvider smtpEmailProvider,
                         PdfReceiptService pdfReceiptService) {
+        this.brevoEmailProvider = brevoEmailProvider;
         this.resendEmailProvider = resendEmailProvider;
         this.smtpEmailProvider = smtpEmailProvider;
         this.pdfReceiptService = pdfReceiptService;
@@ -49,19 +53,29 @@ public class EmailService {
             logger.info("[EmailConfig] Production email service initialized: provider={}, transport={}, from={}, adminRecipient={}",
                     provider.getProviderName(), provider.getTransportType(), maskEmail(fromEmail), maskEmail(adminEmail));
         } else {
-            logger.warn("[EmailConfig] Production email service is UNCONFIGURED. Missing RESEND_API_KEY or SMTP credentials. From={}, Admin={}",
+            logger.warn("[EmailConfig] Production email service is UNCONFIGURED. " +
+                    "Missing BREVO_API_KEY (or RESEND_API_KEY / SMTP credentials). From={}, Admin={}",
                     maskEmail(fromEmail), maskEmail(adminEmail));
         }
     }
 
+    /**
+     * Returns the active email provider in priority order:
+     * 1. Brevo HTTPS API   — primary for Render production (no SMTP port restrictions)
+     * 2. Resend HTTPS API  — secondary fallback
+     * 3. SMTP              — tertiary (local / traditional deployments only)
+     */
     public EmailProvider getActiveProvider() {
+        if (brevoEmailProvider != null && brevoEmailProvider.isConfigured()) {
+            return brevoEmailProvider;
+        }
         if (resendEmailProvider != null && resendEmailProvider.isConfigured()) {
             return resendEmailProvider;
         }
         if (smtpEmailProvider != null && smtpEmailProvider.isConfigured()) {
             return smtpEmailProvider;
         }
-        return resendEmailProvider; // Default fallback to resend for status reporting if neither is fully set up
+        return brevoEmailProvider; // Return Brevo for status reporting even when unconfigured
     }
 
     public boolean isConfigured() {
@@ -107,7 +121,7 @@ public class EmailService {
     public void resendDonationReceiptEmail(Donation donation, Receipt receipt) {
         logger.info("[ResendEmail] Resend receipt email requested for donation ID {}", donation.getId());
         if (!isConfigured()) {
-            throw new IllegalStateException("Production email configuration is incomplete on server. Required environment variables: RESEND_API_KEY (or SMTP host/user/pass), MAIL_FROM, and DONATION_ADMIN_EMAIL.");
+            throw new IllegalStateException("Production email configuration is incomplete on server. Required environment variables: BREVO_API_KEY (or RESEND_API_KEY / SMTP credentials), MAIL_FROM, and DONATION_ADMIN_EMAIL.");
         }
         try {
             sendDonationReceiptEmailInternal(donation, receipt, true);
@@ -120,7 +134,7 @@ public class EmailService {
 
     public void sendAdminTestEmail() {
         if (!isConfigured()) {
-            throw new IllegalStateException("Production email configuration is incomplete on server. Required environment variables: RESEND_API_KEY (or SMTP host/user/pass), MAIL_FROM, DONATION_ADMIN_EMAIL.");
+            throw new IllegalStateException("Production email configuration is incomplete on server. Required environment variables: BREVO_API_KEY (or RESEND_API_KEY / SMTP credentials), MAIL_FROM, DONATION_ADMIN_EMAIL.");
         }
 
         try {
@@ -383,6 +397,8 @@ public class EmailService {
             logger.info("[EmailDispatch] Receipt email SUCCEEDED via provider {} to {} for receipt #{}",
                     provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
         } catch (Exception e) {
+            // Legacy fallback: if Resend is the active provider and returns 403 (sandbox restriction),
+            // attempt SMTP as fallback. This code path is NOT active when Brevo is the primary provider.
             if (provider == resendEmailProvider && smtpEmailProvider != null && smtpEmailProvider.isConfigured()
                     && e.getMessage() != null && e.getMessage().contains("403")) {
                 logger.warn("[EmailFallback] Resend domain restriction encountered for recipient {}. Falling back to SMTP provider...", maskEmail(recipientEmail));
