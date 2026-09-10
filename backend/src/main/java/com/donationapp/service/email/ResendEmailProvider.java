@@ -77,6 +77,9 @@ public class ResendEmailProvider implements EmailProvider {
         Map<String, Object> payload = new HashMap<>();
         payload.put("from", formatFromHeader(fromEmail));
         payload.put("to", List.of(recipientEmail));
+        if (adminEmail != null && !adminEmail.isBlank()) {
+            payload.put("reply_to", adminEmail.trim());
+        }
         payload.put("subject", subject);
         payload.put("html", htmlText);
         payload.put("text", plainText);
@@ -151,7 +154,7 @@ public class ResendEmailProvider implements EmailProvider {
     }
 
     private String formatFromHeader(String from) {
-        if (from == null || from.isBlank()) return "onboarding@resend.dev";
+        if (from == null || from.isBlank()) return "Unicode Estates <donations@unicodeestates.in>";
         if (from.contains("<") && from.contains(">")) return from;
         return "Unicode Estates <" + from.trim() + ">";
     }

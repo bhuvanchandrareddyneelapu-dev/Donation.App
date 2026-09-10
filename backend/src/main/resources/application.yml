@@ -55,7 +55,7 @@ donationapp:
     expiration-ms: 86400000 # 24 hours
   email:
     resend-api-key: ${RESEND_API_KEY:}
-    from: ${MAIL_FROM:${spring.mail.username:notifications@donation.app}}
+    from: ${MAIL_FROM:donations@unicodeestates.in}
     admin-email: ${DONATION_ADMIN_EMAIL:${spring.mail.username:admin@donation.app}}
 
 razorpay:
