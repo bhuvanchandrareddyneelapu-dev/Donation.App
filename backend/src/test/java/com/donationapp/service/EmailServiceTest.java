@@ -190,4 +190,46 @@ public class EmailServiceTest {
         // Should log error without throwing exception (safe for core transaction)
         assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
     }
+
+    @Test
+    void testSendDonationReceiptEmail_UsesDynamicDonorEmailFromDonationEntity() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-bytes".getBytes());
+        donation.setDonorEmail("dynamic.devotee.99@example.org");
+
+        assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
+
+        verify(resendEmailProvider, times(1)).sendDonorReceipt(
+                eq(donation), eq(receipt), eq("dynamic.devotee.99@example.org"),
+                anyString(), anyString(), anyString(), eq("%PDF-bytes".getBytes()), eq(false)
+        );
+    }
+
+    @Test
+    void testSendDonationReceiptEmail_InvalidEmailFormat_SkippedSafely() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        donation.setDonorEmail("invalid-email-address");
+
+        assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
+
+        verify(resendEmailProvider, never()).sendDonorReceipt(any(), any(), any(), any(), any(), any(), any(), anyBoolean());
+    }
+
+    @Test
+    void testSendDonationReceiptEmail_Resend403FallbackToSmtp() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(smtpEmailProvider.isConfigured()).thenReturn(true);
+        when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-bytes".getBytes());
+        donation.setDonorEmail("donor.fallback@example.com");
+
+        doThrow(new RuntimeException("Resend API failed with status 403: domain restriction"))
+                .when(resendEmailProvider)
+                .sendDonorReceipt(any(), any(), anyString(), anyString(), anyString(), anyString(), any(), anyBoolean());
+
+        assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
+
+        // Resend fails with 403 -> falls back to SMTP provider successfully
+        verify(resendEmailProvider, times(1)).sendDonorReceipt(any(), any(), eq("donor.fallback@example.com"), any(), any(), any(), any(), eq(false));
+        verify(smtpEmailProvider, times(1)).sendDonorReceipt(any(), any(), eq("donor.fallback@example.com"), any(), any(), any(), any(), eq(false));
+    }
 }

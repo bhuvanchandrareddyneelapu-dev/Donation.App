@@ -244,7 +244,7 @@ public class EmailService {
         String recipientEmail = getRecipientEmail(donation);
         if (recipientEmail == null || recipientEmail.isBlank()) {
             String msg = "No donor email address provided for donation ID: " + donation.getId();
-            logger.error("[ResendEmail] Failed: {}", msg);
+            logger.error("[EmailDispatch] Failed: {}", msg);
             if (isResend) {
                 throw new IllegalArgumentException(msg);
             }
@@ -252,7 +252,16 @@ public class EmailService {
             return;
         }
 
-        logger.info("[ResendEmail] Recipient email found: {}", maskEmail(recipientEmail));
+        if (!isValidEmail(recipientEmail)) {
+            String msg = "Invalid donor email address format for donation ID " + donation.getId() + ": " + maskEmail(recipientEmail);
+            logger.warn("[EmailValidation] {}", msg);
+            if (isResend) {
+                throw new IllegalArgumentException("Invalid donor email address format.");
+            }
+            return;
+        }
+
+        logger.info("[EmailDispatch] Recipient email found for donation ID {}: {}", donation.getId(), maskEmail(recipientEmail));
 
         String donorName = donation.isAnonymous() ? "Valued Devotee" : donation.getDonorName();
         String receiptNo = receipt != null ? receipt.getReceiptNumber() : "N/A";
@@ -366,9 +375,32 @@ public class EmailService {
         }
 
         EmailProvider provider = getActiveProvider();
-        logger.info("[ResendEmail] Sending receipt email via provider {} to {} for receipt #{}", provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
-        provider.sendDonorReceipt(donation, receipt, recipientEmail, subject, plainText, htmlText, pdfBytes, isResend);
-        logger.info("[ResendEmail] Receipt email SUCCEEDED via provider {} to {} for receipt #{}", provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
+        logger.info("[EmailDispatch] Sending receipt email via provider {} to {} for receipt #{}",
+                provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
+
+        try {
+            provider.sendDonorReceipt(donation, receipt, recipientEmail, subject, plainText, htmlText, pdfBytes, isResend);
+            logger.info("[EmailDispatch] Receipt email SUCCEEDED via provider {} to {} for receipt #{}",
+                    provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
+        } catch (Exception e) {
+            if (provider == resendEmailProvider && smtpEmailProvider != null && smtpEmailProvider.isConfigured()
+                    && e.getMessage() != null && e.getMessage().contains("403")) {
+                logger.warn("[EmailFallback] Resend domain restriction encountered for recipient {}. Falling back to SMTP provider...", maskEmail(recipientEmail));
+                smtpEmailProvider.sendDonorReceipt(donation, receipt, recipientEmail, subject, plainText, htmlText, pdfBytes, isResend);
+                logger.info("[EmailFallback] Receipt email SUCCEEDED via SMTP fallback to {} for receipt #{}", maskEmail(recipientEmail), receiptNo);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public boolean isValidEmail(String email) {
+        if (email == null || email.isBlank()) return false;
+        String trimmed = email.trim();
+        int atIndex = trimmed.indexOf('@');
+        if (atIndex <= 0 || atIndex != trimmed.lastIndexOf('@')) return false;
+        String domain = trimmed.substring(atIndex + 1);
+        return domain.contains(".") && !domain.startsWith(".") && !domain.endsWith(".");
     }
 
     private String maskEmail(String email) {
@@ -380,10 +412,10 @@ public class EmailService {
 
     private String getRecipientEmail(Donation donation) {
         if (donation.getDonorEmail() != null && !donation.getDonorEmail().isBlank()) {
-            return donation.getDonorEmail();
+            return donation.getDonorEmail().trim();
         }
         if (donation.getDonor() != null && donation.getDonor().getEmail() != null && !donation.getDonor().getEmail().isBlank()) {
-            return donation.getDonor().getEmail();
+            return donation.getDonor().getEmail().trim();
         }
         return null;
     }
