@@ -17,6 +17,14 @@ services:
     dockerfilePath: Dockerfile
     healthCheckPath: /health
     envVars:
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: DONATION_ADMIN_EMAIL
+        sync: false
+      - key: APP_BASE_URL
+        sync: false
       - key: SPRING_MAIL_HOST
         sync: false
       - key: SPRING_MAIL_PORT
@@ -25,13 +33,4 @@ services:
         sync: false
       - key: SPRING_MAIL_PASSWORD
         sync: false
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
-        sync: false
-      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
-        sync: false
-      - key: MAIL_FROM
-        sync: false
-      - key: DONATION_ADMIN_EMAIL
-        sync: false
-      - key: APP_BASE_URL
-        sync: false
+

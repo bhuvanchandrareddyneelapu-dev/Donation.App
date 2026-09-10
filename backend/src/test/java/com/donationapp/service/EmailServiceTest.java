@@ -3,15 +3,13 @@ package com.donationapp.service;
 import com.donationapp.entity.Donation;
 import com.donationapp.entity.Festival;
 import com.donationapp.entity.Receipt;
-import jakarta.mail.internet.MimeMessage;
+import com.donationapp.service.email.ResendEmailProvider;
+import com.donationapp.service.email.SmtpEmailProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -19,33 +17,29 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class EmailServiceTest {
 
     @Mock
-    private JavaMailSender mailSender;
+    private ResendEmailProvider resendEmailProvider;
+
+    @Mock
+    private SmtpEmailProvider smtpEmailProvider;
 
     @Mock
     private PdfReceiptService pdfReceiptService;
 
-    @Mock
-    private MimeMessage mimeMessage;
-
-    @InjectMocks
     private EmailService emailService;
-
     private Donation donation;
     private Receipt receipt;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(emailService, "smtpHost", "smtp.gmail.com");
-        ReflectionTestUtils.setField(emailService, "smtpPort", 587);
-        ReflectionTestUtils.setField(emailService, "smtpUsername", "notifications@donation.app");
-        ReflectionTestUtils.setField(emailService, "smtpPassword", "app-password-secret");
+        emailService = new EmailService(resendEmailProvider, smtpEmailProvider, pdfReceiptService);
+
         ReflectionTestUtils.setField(emailService, "fromEmail", "notifications@donation.app");
         ReflectionTestUtils.setField(emailService, "adminEmail", "admin@donation.app");
         ReflectionTestUtils.setField(emailService, "appBaseUrl", "https://donation-app-frontend-150r.onrender.com");
@@ -69,46 +63,62 @@ public class EmailServiceTest {
     }
 
     @Test
-    void testIsConfigured_ReturnsTrueWhenAllFieldsSet() {
+    void testIsConfigured_ReturnsTrueWhenResendConfigured() {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
+
         assertTrue(emailService.isConfigured());
-
-        Map<String, Object> map = emailService.getSmtpStatusMap();
-        assertEquals(true, map.get("configured"));
-        assertEquals("smtp.gmail.com", map.get("smtpHost"));
-        assertEquals(587, map.get("smtpPort"));
+        assertEquals(resendEmailProvider, emailService.getActiveProvider());
     }
 
     @Test
-    void testIsConfigured_MissingUsername_ReturnsFalse() {
-        ReflectionTestUtils.setField(emailService, "smtpUsername", "");
+    void testIsConfigured_ReturnsTrueWhenSmtpConfiguredAsFallback() {
+        when(resendEmailProvider.isConfigured()).thenReturn(false);
+        when(smtpEmailProvider.isConfigured()).thenReturn(true);
+
+        assertTrue(emailService.isConfigured());
+        assertEquals(smtpEmailProvider, emailService.getActiveProvider());
+    }
+
+    @Test
+    void testIsConfigured_ReturnsFalseWhenNeitherConfigured() {
+        when(resendEmailProvider.isConfigured()).thenReturn(false);
+        when(smtpEmailProvider.isConfigured()).thenReturn(false);
+
         assertFalse(emailService.isConfigured());
     }
 
     @Test
-    void testIsConfigured_MissingPassword_ReturnsFalse() {
-        ReflectionTestUtils.setField(emailService, "smtpPassword", "");
-        assertFalse(emailService.isConfigured());
+    void testGetEmailStatusMap_ReportsProviderDetails() {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(resendEmailProvider.getStatusMap()).thenReturn(Map.of(
+                "provider", "resend",
+                "transport", "https",
+                "apiConfigured", true
+        ));
+
+        Map<String, Object> status = emailService.getEmailStatusMap();
+        assertTrue((Boolean) status.get("configured"));
+        assertEquals("resend", status.get("provider"));
+        assertEquals("https", status.get("transport"));
     }
 
     @Test
-    void testIsConfigured_MissingMailFrom_ReturnsFalse() {
-        ReflectionTestUtils.setField(emailService, "fromEmail", "");
-        assertFalse(emailService.isConfigured());
-    }
-
-    @Test
-    void testResendDonationReceiptEmail_Success() {
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+    void testResendDonationReceiptEmail_Success() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
         when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-dummy".getBytes());
 
         assertDoesNotThrow(() -> emailService.resendDonationReceiptEmail(donation, receipt));
 
-        verify(mailSender, times(1)).send(any(MimeMessage.class));
+        verify(resendEmailProvider, times(1)).sendDonorReceipt(
+                eq(donation), eq(receipt), eq("donor@example.com"),
+                contains("Unicode Estates"), contains("Dear N. LEELA"), contains("<!DOCTYPE html>"), any(), eq(true)
+        );
         verify(pdfReceiptService, times(1)).generateReceiptPdf(donation, receipt);
     }
 
     @Test
     void testResendDonationReceiptEmail_MissingDonorEmail_ThrowsException() {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
         donation.setDonorEmail(null);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
@@ -116,60 +126,68 @@ public class EmailServiceTest {
         );
 
         assertTrue(ex.getMessage().contains("No donor email address provided"));
-        verify(mailSender, never()).send(any(MimeMessage.class));
     }
 
     @Test
-    void testResendDonationReceiptEmail_SmtpException_ThrowsException() {
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+    void testResendDonationReceiptEmail_ProviderException_ThrowsException() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
         when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-dummy".getBytes());
-        doThrow(new MailSendException("SMTP server connection refused")).when(mailSender).send(any(MimeMessage.class));
+        doThrow(new RuntimeException("Resend API 401 Unauthorized")).when(resendEmailProvider)
+                .sendDonorReceipt(any(), any(), anyString(), anyString(), anyString(), anyString(), any(), anyBoolean());
 
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
                 emailService.resendDonationReceiptEmail(donation, receipt)
         );
 
-        assertTrue(ex.getMessage().contains("Failed to send receipt email via SMTP"));
+        assertTrue(ex.getMessage().contains("Failed to resend receipt email"));
     }
 
     @Test
-    void testSendAdminTestEmail_Success() {
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+    void testSendAdminTestEmail_Success() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
 
         assertDoesNotThrow(() -> emailService.sendAdminTestEmail());
 
-        verify(mailSender, times(1)).send(any(MimeMessage.class));
+        verify(resendEmailProvider, times(1)).sendTestEmail(
+                eq("Donation.App Production Email Test"),
+                contains("Donation.App Email Delivery Test"),
+                contains("Donation.App Email Delivery Test"),
+                eq("admin@donation.app")
+        );
     }
 
     @Test
     void testSendAdminTestEmail_Unconfigured_ThrowsIllegalStateException() {
-        ReflectionTestUtils.setField(emailService, "smtpPassword", "");
+        when(resendEmailProvider.isConfigured()).thenReturn(false);
+        when(smtpEmailProvider.isConfigured()).thenReturn(false);
 
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
                 emailService.sendAdminTestEmail()
         );
 
-        assertTrue(ex.getMessage().contains("SMTP email configuration is incomplete"));
+        assertTrue(ex.getMessage().contains("Production email configuration is incomplete"));
     }
 
     @Test
-    void testSendAdminTestEmail_SmtpException_ThrowsRuntimeException() {
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
-        doThrow(new MailSendException("Auth failed")).when(mailSender).send(any(MimeMessage.class));
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
-                emailService.sendAdminTestEmail()
-        );
-
-        assertTrue(ex.getMessage().contains("Failed to send test email"));
-    }
-
-    @Test
-    void testSendAdminDonationNotificationEmail_Success() {
-        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+    void testSendAdminDonationNotificationEmail_Success() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
 
         assertDoesNotThrow(() -> emailService.sendAdminDonationNotificationEmail(donation, receipt));
 
-        verify(mailSender, times(1)).send(any(MimeMessage.class));
+        verify(resendEmailProvider, times(1)).sendAdminNotification(
+                eq(donation), eq(receipt), eq("admin@donation.app"),
+                contains("New Contribution"), contains("Donation.App Committee Admin Notification")
+        );
+    }
+
+    @Test
+    void testSendDonationReceiptEmail_DoesNotRollbackOnProviderError() throws Exception {
+        when(resendEmailProvider.isConfigured()).thenReturn(true);
+        when(pdfReceiptService.generateReceiptPdf(any(), any())).thenReturn("%PDF-dummy".getBytes());
+        doThrow(new RuntimeException("API Connection Failed")).when(resendEmailProvider)
+                .sendDonorReceipt(any(), any(), anyString(), anyString(), anyString(), anyString(), any(), anyBoolean());
+
+        // Should log error without throwing exception (safe for core transaction)
+        assertDoesNotThrow(() -> emailService.sendDonationReceiptEmail(donation, receipt));
     }
 }

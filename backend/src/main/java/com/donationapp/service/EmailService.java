@@ -2,14 +2,13 @@ package com.donationapp.service;
 
 import com.donationapp.entity.Donation;
 import com.donationapp.entity.Receipt;
+import com.donationapp.service.email.EmailProvider;
+import com.donationapp.service.email.ResendEmailProvider;
+import com.donationapp.service.email.SmtpEmailProvider;
 import jakarta.annotation.PostConstruct;
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,26 +21,9 @@ public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final ResendEmailProvider resendEmailProvider;
+    private final SmtpEmailProvider smtpEmailProvider;
     private final PdfReceiptService pdfReceiptService;
-
-    @Value("${spring.mail.host:}")
-    private String smtpHost;
-
-    @Value("${spring.mail.port:587}")
-    private int smtpPort;
-
-    @Value("${spring.mail.username:}")
-    private String smtpUsername;
-
-    @Value("${spring.mail.password:}")
-    private String smtpPassword;
-
-    @Value("${spring.mail.properties.mail.smtp.auth:true}")
-    private boolean smtpAuth;
-
-    @Value("${spring.mail.properties.mail.smtp.starttls.enable:true}")
-    private boolean startTls;
 
     @Value("${donationapp.email.from:${spring.mail.username:}}")
     private String fromEmail;
@@ -52,65 +34,85 @@ public class EmailService {
     @Value("${donationapp.app-base-url:https://donation-app-frontend-150r.onrender.com}")
     private String appBaseUrl;
 
-    public EmailService(JavaMailSender mailSender, PdfReceiptService pdfReceiptService) {
-        this.mailSender = mailSender;
+    public EmailService(ResendEmailProvider resendEmailProvider,
+                        SmtpEmailProvider smtpEmailProvider,
+                        PdfReceiptService pdfReceiptService) {
+        this.resendEmailProvider = resendEmailProvider;
+        this.smtpEmailProvider = smtpEmailProvider;
         this.pdfReceiptService = pdfReceiptService;
     }
 
     @PostConstruct
     public void initDiagnostics() {
-        if (isConfigured()) {
-            logger.info("[EmailConfig] Production SMTP email configuration initialized: provider=smtp, host={}, port={}, username={}, from={}, adminRecipient={}, starttls={}, auth={}",
-                    smtpHost, smtpPort, maskEmail(smtpUsername), maskEmail(fromEmail), maskEmail(adminEmail), startTls, smtpAuth);
+        EmailProvider provider = getActiveProvider();
+        if (provider != null && provider.isConfigured()) {
+            logger.info("[EmailConfig] Production email service initialized: provider={}, transport={}, from={}, adminRecipient={}",
+                    provider.getProviderName(), provider.getTransportType(), maskEmail(fromEmail), maskEmail(adminEmail));
         } else {
-            logger.warn("[EmailConfig] Production SMTP email configuration is INCOMPLETE or UNCONFIGURED. Missing host, username, password, or recipient addresses. Host={}, Port={}, Username={}, From={}, Admin={}",
-                    smtpHost, smtpPort, maskEmail(smtpUsername), maskEmail(fromEmail), maskEmail(adminEmail));
+            logger.warn("[EmailConfig] Production email service is UNCONFIGURED. Missing RESEND_API_KEY or SMTP credentials. From={}, Admin={}",
+                    maskEmail(fromEmail), maskEmail(adminEmail));
         }
     }
 
-    public boolean isConfigured() {
-        return smtpHost != null && !smtpHost.isBlank()
-                && smtpUsername != null && !smtpUsername.isBlank()
-                && smtpPassword != null && !smtpPassword.isBlank()
-                && fromEmail != null && !fromEmail.isBlank()
-                && adminEmail != null && !adminEmail.isBlank();
+    public EmailProvider getActiveProvider() {
+        if (resendEmailProvider != null && resendEmailProvider.isConfigured()) {
+            return resendEmailProvider;
+        }
+        if (smtpEmailProvider != null && smtpEmailProvider.isConfigured()) {
+            return smtpEmailProvider;
+        }
+        return resendEmailProvider; // Default fallback to resend for status reporting if neither is fully set up
     }
 
-    public Map<String, Object> getSmtpStatusMap() {
+    public boolean isConfigured() {
+        EmailProvider provider = getActiveProvider();
+        return provider != null && provider.isConfigured();
+    }
+
+    public Map<String, Object> getEmailStatusMap() {
+        EmailProvider provider = getActiveProvider();
+        if (provider != null) {
+            Map<String, Object> map = new HashMap<>(provider.getStatusMap());
+            map.put("configured", isConfigured());
+            return map;
+        }
         Map<String, Object> map = new HashMap<>();
-        map.put("configured", isConfigured());
-        map.put("smtpHost", (smtpHost != null && !smtpHost.isBlank()) ? smtpHost : "unconfigured");
-        map.put("smtpPort", smtpPort);
-        map.put("smtpAuth", smtpAuth);
-        map.put("startTls", startTls);
-        map.put("fromConfigured", fromEmail != null && !fromEmail.isBlank());
-        map.put("adminRecipientConfigured", adminEmail != null && !adminEmail.isBlank());
+        map.put("configured", false);
+        map.put("provider", "unconfigured");
+        map.put("transport", "none");
         map.put("fromEmail", maskEmail(fromEmail));
         map.put("adminEmail", maskEmail(adminEmail));
         return map;
     }
 
+    public Map<String, Object> getSmtpStatusMap() {
+        return getEmailStatusMap();
+    }
+
     public void sendDonationReceiptEmail(Donation donation, Receipt receipt) {
         if (!isConfigured()) {
-            logger.info("Skipping automated donor receipt email for donation ID {}: SMTP email configuration is unconfigured", donation.getId());
+            logger.info("Skipping automated donor receipt email for donation ID {}: email service is unconfigured", donation.getId());
             return;
         }
         try {
             sendDonationReceiptEmailInternal(donation, receipt, false);
         } catch (Exception e) {
-            logger.error("Failed to send donor receipt email for donation ID {}: {}", donation.getId(), e.getMessage());
+            EmailProvider provider = getActiveProvider();
+            String recipientEmail = getRecipientEmail(donation);
+            logger.error("EMAIL_SEND_FAILED donationId={} recipient={} provider={} error={}",
+                    donation.getId(), maskEmail(recipientEmail), provider != null ? provider.getProviderName() : "unknown", e.getMessage());
         }
     }
 
     public void resendDonationReceiptEmail(Donation donation, Receipt receipt) {
         logger.info("[ResendEmail] Resend receipt email requested for donation ID {}", donation.getId());
         if (!isConfigured()) {
-            throw new IllegalStateException("SMTP email configuration is incomplete on server. Please set SPRING_MAIL_HOST, SPRING_MAIL_USERNAME, SPRING_MAIL_PASSWORD, MAIL_FROM, and DONATION_ADMIN_EMAIL.");
+            throw new IllegalStateException("Production email configuration is incomplete on server. Required environment variables: RESEND_API_KEY (or SMTP host/user/pass), MAIL_FROM, and DONATION_ADMIN_EMAIL.");
         }
         try {
             sendDonationReceiptEmailInternal(donation, receipt, true);
-        } catch (RuntimeException re) {
-            throw re;
+        } catch (IllegalArgumentException iae) {
+            throw iae;
         } catch (Exception e) {
             throw new RuntimeException("Failed to resend receipt email: " + e.getMessage(), e);
         }
@@ -118,24 +120,30 @@ public class EmailService {
 
     public void sendAdminTestEmail() {
         if (!isConfigured()) {
-            throw new IllegalStateException("SMTP email configuration is incomplete on server. Required environment variables: SPRING_MAIL_HOST, SPRING_MAIL_USERNAME, SPRING_MAIL_PASSWORD, MAIL_FROM, DONATION_ADMIN_EMAIL.");
+            throw new IllegalStateException("Production email configuration is incomplete on server. Required environment variables: RESEND_API_KEY (or SMTP host/user/pass), MAIL_FROM, DONATION_ADMIN_EMAIL.");
         }
 
         try {
             String subject = "Donation.App Production Email Test";
             String formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a"));
             String baseUrl = (appBaseUrl != null ? appBaseUrl : "https://donation-app-frontend-150r.onrender.com").replaceAll("/+$", "");
+            EmailProvider provider = getActiveProvider();
+            String pName = (provider != null && provider.getProviderName() != null) ? provider.getProviderName() : "resend";
+            String pTransport = (provider != null && provider.getTransportType() != null) ? provider.getTransportType() : "https";
 
             String plainText = String.format(
                     "Donation.App Email Delivery Test\n\n" +
-                    "This is a real production SMTP delivery test.\n\n" +
+                    "This is a real production email delivery test.\n\n" +
                     "Environment: production\n" +
                     "Application: Donation.App\n" +
-                    "Organization: Unicode Estates, PM Palem\n\n" +
-                    "If you received this email, SMTP delivery is working correctly.\n\n" +
+                    "Organization: Unicode Estates, PM Palem\n" +
+                    "Provider: %s (%s)\n\n" +
+                    "If you received this email, email delivery is working correctly.\n\n" +
                     "Timestamp: %s\n" +
                     "Application Base URL: %s\n" +
                     "Sender: %s\n",
+                    pName.toUpperCase(),
+                    pTransport.toUpperCase(),
                     formattedDate,
                     baseUrl,
                     maskEmail(fromEmail)
@@ -151,43 +159,40 @@ public class EmailService {
                     "</style></head><body>" +
                     "<div class='card'>" +
                     "<div class='header'>Donation.App Email Delivery Test</div>" +
-                    "<div style='text-align:center;'><span class='badge'>✓ Production SMTP Test</span></div>" +
-                    "<p>This is a real production SMTP delivery test.</p>" +
+                    "<div style='text-align:center;'><span class='badge'>✓ Production Delivery Test (%s)</span></div>" +
+                    "<p>This is a real production email delivery test.</p>" +
                     "<div class='info'>" +
                     "<strong>Environment:</strong> production<br>" +
                     "<strong>Application:</strong> Donation.App<br>" +
                     "<strong>Organization:</strong> Unicode Estates, PM Palem<br>" +
+                    "<strong>Provider:</strong> %s (%s)<br>" +
                     "<strong>Timestamp:</strong> %s<br>" +
                     "<strong>Base URL:</strong> %s<br>" +
                     "<strong>Sender:</strong> %s" +
                     "</div>" +
-                    "<p style='text-align:center; color: #10b981; font-weight: bold; margin-top: 20px;'>If you received this email, SMTP delivery is working correctly.</p>" +
+                    "<p style='text-align:center; color: #10b981; font-weight: bold; margin-top: 20px;'>If you received this email, email delivery is working correctly.</p>" +
                     "</div></body></html>",
+                    pName.toUpperCase(),
+                    pName,
+                    pTransport,
                     formattedDate,
                     baseUrl,
                     maskEmail(fromEmail)
             );
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(adminEmail);
-            helper.setSubject(subject);
-            helper.setText(plainText, htmlText);
-
-            logger.info("[AdminTestEmail] Attempting SMTP test email send to {}", maskEmail(adminEmail));
-            mailSender.send(message);
-            logger.info("[AdminTestEmail] SMTP test email send SUCCEEDED to {}", maskEmail(adminEmail));
+            logger.info("[AdminTestEmail] Attempting test email via provider {} to {}", provider != null ? provider.getProviderName() : "unknown", maskEmail(adminEmail));
+            provider.sendTestEmail(subject, plainText, htmlText, adminEmail);
+            logger.info("[AdminTestEmail] Test email SUCCEEDED to {}", maskEmail(adminEmail));
 
         } catch (Exception e) {
-            logger.error("[AdminTestEmail] SMTP test email send FAILED to {}: {}", maskEmail(adminEmail), e.getMessage());
+            logger.error("[AdminTestEmail] Test email FAILED to {}: {}", maskEmail(adminEmail), e.getMessage());
             throw new RuntimeException("Failed to send test email: " + e.getMessage(), e);
         }
     }
 
     public void sendAdminDonationNotificationEmail(Donation donation, Receipt receipt) {
         if (!isConfigured()) {
-            logger.info("Skipping admin notification email for donation ID {}: SMTP email configuration is unconfigured", donation.getId());
+            logger.info("Skipping admin notification email for donation ID {}: email service is unconfigured", donation.getId());
             return;
         }
 
@@ -224,18 +229,14 @@ public class EmailService {
                     donation.getId()
             );
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(adminEmail);
-            helper.setSubject(subject);
-            helper.setText(body);
-
-            mailSender.send(message);
+            EmailProvider provider = getActiveProvider();
+            provider.sendAdminNotification(donation, receipt, adminEmail, subject, body);
             logger.info("Successfully sent admin notification email to {} for donation ID {}", maskEmail(adminEmail), donation.getId());
 
         } catch (Exception e) {
-            logger.error("Failed to send admin notification email for donation ID {}: {}", donation.getId(), e.getMessage());
+            EmailProvider provider = getActiveProvider();
+            logger.error("EMAIL_SEND_FAILED donationId={} recipient={} provider={} error={}",
+                    donation.getId(), maskEmail(adminEmail), provider != null ? provider.getProviderName() : "unknown", e.getMessage());
         }
     }
 
@@ -254,7 +255,6 @@ public class EmailService {
         logger.info("[ResendEmail] Recipient email found: {}", maskEmail(recipientEmail));
 
         String donorName = donation.isAnonymous() ? "Valued Devotee" : donation.getDonorName();
-        String festivalName = donation.getFestival() != null ? donation.getFestival().getName() : "Unicode Estates Ganesh Chaturthi Celebrations 2026";
         String receiptNo = receipt != null ? receipt.getReceiptNumber() : "N/A";
         String formattedDate = donation.getCreatedAt() != null
                 ? donation.getCreatedAt().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm a"))
@@ -350,20 +350,11 @@ public class EmailService {
                 verificationUrl
         );
 
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setFrom(fromEmail);
-        helper.setTo(recipientEmail);
-        helper.setSubject(subject);
-        helper.setText(plainText, htmlText);
-
-        // Attach PDF receipt
+        byte[] pdfBytes = null;
         if (receipt != null) {
             try {
-                byte[] pdfBytes = pdfReceiptService.generateReceiptPdf(donation, receipt);
-                if (pdfBytes != null && pdfBytes.length > 0) {
-                    helper.addAttachment("Receipt_" + receiptNo + ".pdf", new ByteArrayResource(pdfBytes));
-                } else if (isResend) {
+                pdfBytes = pdfReceiptService.generateReceiptPdf(donation, receipt);
+                if ((pdfBytes == null || pdfBytes.length == 0) && isResend) {
                     throw new RuntimeException("PDF receipt bytes empty for receipt: " + receiptNo);
                 }
             } catch (Exception pdfEx) {
@@ -374,16 +365,10 @@ public class EmailService {
             }
         }
 
-        try {
-            logger.info("[ResendEmail] Attempting SMTP email send to {} for receipt #{}", maskEmail(recipientEmail), receiptNo);
-            mailSender.send(message);
-            logger.info("[ResendEmail] SMTP email send SUCCEEDED to {} for receipt #{}", maskEmail(recipientEmail), receiptNo);
-        } catch (Exception smtpEx) {
-            logger.error("[ResendEmail] SMTP email send FAILED for donation ID {}: {}", donation.getId(), smtpEx.getMessage());
-            if (isResend) {
-                throw new RuntimeException("Failed to send receipt email via SMTP: " + smtpEx.getMessage(), smtpEx);
-            }
-        }
+        EmailProvider provider = getActiveProvider();
+        logger.info("[ResendEmail] Sending receipt email via provider {} to {} for receipt #{}", provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
+        provider.sendDonorReceipt(donation, receipt, recipientEmail, subject, plainText, htmlText, pdfBytes, isResend);
+        logger.info("[ResendEmail] Receipt email SUCCEEDED via provider {} to {} for receipt #{}", provider != null ? provider.getProviderName() : "unknown", maskEmail(recipientEmail), receiptNo);
     }
 
     private String maskEmail(String email) {
