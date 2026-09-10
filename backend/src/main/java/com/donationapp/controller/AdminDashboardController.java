@@ -129,13 +129,13 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/email/status")
-    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN')")
+    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN', 'TREASURER', 'VOLUNTEER')")
     public ResponseEntity<?> getEmailStatus() {
         return ResponseEntity.ok(emailService.getSmtpStatusMap());
     }
 
     @PostMapping("/email/test")
-    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN')")
+    @PreAuthorize("hasAnyRole('HEAD', 'SUPER_ADMIN', 'SUPERVISOR', 'FESTIVAL_ADMIN', 'TREASURER', 'VOLUNTEER')")
     public ResponseEntity<?> sendTestEmail() {
         emailService.sendAdminTestEmail();
         return ResponseEntity.ok(Map.of("message", "Production test email sent successfully. Check the admin inbox."));

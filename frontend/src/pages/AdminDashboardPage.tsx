@@ -302,7 +302,7 @@ export const AdminDashboardPage: React.FC = () => {
                     </span>
                   )}
                 </h3>
-                <p className="text-xs text-slate-400">Live production SMTP configuration status & delivery test suite</p>
+                <p className="text-xs text-slate-400">Live production email configuration status & delivery test suite</p>
               </div>
             </div>
 
@@ -319,29 +319,39 @@ export const AdminDashboardPage: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs pt-2">
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">Email Provider</span>
-              <div className="font-mono font-bold text-white mt-0.5 truncate uppercase">{emailStatus?.provider || 'Resend'}</div>
+              <div className="font-mono font-bold text-white mt-0.5 truncate uppercase">
+                {emailStatus?.provider ? String(emailStatus.provider).toUpperCase() : 'RESEND'}
+              </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">Transport</span>
-              <div className="font-mono font-bold text-amber-400 mt-0.5 uppercase">{emailStatus?.transport || 'HTTPS'}</div>
+              <div className="font-mono font-bold text-amber-400 mt-0.5 uppercase">
+                {emailStatus?.transport ? String(emailStatus.transport).toUpperCase() : 'HTTPS'}
+              </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">API Key / Auth</span>
               <div className="font-mono font-bold text-emerald-400 mt-0.5">
-                {emailStatus?.apiConfigured || emailStatus?.smtpAuth ? 'ENABLED' : 'MISSING'}
+                {(emailStatus?.apiConfigured ?? emailStatus?.smtpAuth ?? (emailStatus?.configured && emailStatus?.provider === 'resend')) ? 'ENABLED' : 'MISSING'}
               </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">API / Provider Status</span>
-              <div className="font-mono font-bold text-emerald-400 mt-0.5">{emailStatus?.configured ? 'READY' : 'UNCONFIGURED'}</div>
+              <div className="font-mono font-bold text-emerald-400 mt-0.5">
+                {emailStatus?.configured ? 'READY' : 'UNCONFIGURED'}
+              </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">Sender (MAIL_FROM)</span>
-              <div className="font-mono font-bold text-slate-300 mt-0.5 truncate">{emailStatus?.fromEmail || 'Missing'}</div>
+              <div className="font-mono font-bold text-slate-300 mt-0.5 truncate">
+                {emailStatus?.fromEmail || 'Missing'}
+              </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
               <span className="text-slate-500 text-[10px] uppercase font-bold">Admin Recipient</span>
-              <div className="font-mono font-bold text-slate-300 mt-0.5 truncate">{emailStatus?.adminEmail || 'Missing'}</div>
+              <div className="font-mono font-bold text-slate-300 mt-0.5 truncate">
+                {emailStatus?.adminEmail || 'Missing'}
+              </div>
             </div>
           </div>
         </div>
