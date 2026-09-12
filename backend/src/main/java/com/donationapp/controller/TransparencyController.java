@@ -5,6 +5,7 @@ import com.donationapp.dto.resp.ExpenseResponse;
 import com.donationapp.entity.Expense;
 import com.donationapp.service.TransparencyService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,6 +45,7 @@ public class TransparencyController {
     }
 
     @PostMapping("/expenses")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'FESTIVAL_ADMIN', 'TREASURER')")
     public ResponseEntity<ExpenseResponse> recordExpense(
             @RequestBody Expense expense,
             @RequestParam(required = false) List<String> proofUrls) {

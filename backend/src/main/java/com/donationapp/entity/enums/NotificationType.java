@@ -1,0 +1,19 @@
+package com.donationapp.entity.enums;
+
+public enum NotificationType {
+    FESTIVAL_COUNTDOWN,
+    PUJA_REMINDER,
+    EVENT_REMINDER,
+    EVENT_STARTED,
+    DECORATION,
+    CULTURAL_PROGRAM,
+    DANCE_PROGRAM,
+    MUSIC_PROGRAM,
+    PRASAD,
+    VOLUNTEER_REQUEST,
+    PRIEST_DELAY,
+    EVENT_DELAY,
+    NIMAJJANAM_UPDATE,
+    IMPORTANT_NOTICE,
+    GENERAL_ANNOUNCEMENT
+}

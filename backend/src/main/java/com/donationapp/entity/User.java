@@ -12,6 +12,7 @@ public class User {
     public enum Role {
         HEAD,
         SUPER_ADMIN,
+        ADMIN,
         SUPERVISOR,
         FESTIVAL_ADMIN,
         TREASURER,

@@ -51,6 +51,14 @@ services:
       - key: JWT_SECRET
         sync: false
 
+      # === WEB PUSH VAPID CONFIGURATION ===
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+
       # === LEGACY / SMTP (not required when Brevo is configured) ===
       - key: RESEND_API_KEY
         sync: false

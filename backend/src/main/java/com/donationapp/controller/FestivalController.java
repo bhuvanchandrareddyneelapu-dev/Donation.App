@@ -59,7 +59,7 @@ public class FestivalController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'FESTIVAL_ADMIN')")
     public ResponseEntity<FestivalResponse> updateFestival(@PathVariable Long id, @RequestBody Festival festival) {
         return ResponseEntity.ok(new FestivalResponse(festivalService.updateFestival(id, festival)));
     }

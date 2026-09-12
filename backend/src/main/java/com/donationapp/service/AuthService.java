@@ -34,10 +34,21 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
+        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
+
+        // Enforce committee RBAC: only authorized committee roles can access committee portal
+        User.Role role = userDetails.getRole();
+        boolean isCommitteeRole = role == User.Role.SUPER_ADMIN || role == User.Role.ADMIN || 
+                                  role == User.Role.FESTIVAL_ADMIN || role == User.Role.VOLUNTEER ||
+                                  role == User.Role.TREASURER || role == User.Role.HEAD || role == User.Role.SUPERVISOR;
+
+        if (!isCommitteeRole) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN, "You are not authorized to access the committee dashboard.");
+        }
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
-
-        UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
 
         return new JwtResponse(
                 jwt,
@@ -45,7 +56,7 @@ public class AuthService {
                 userDetails.getName(),
                 userDetails.getUsername(),
                 userRepository.findById(userDetails.getId()).map(User::getPhone).orElse(""),
-                userDetails.getRole()
+                role
         );
     }
 
@@ -54,12 +65,13 @@ public class AuthService {
             throw new RuntimeException("Error: Email is already in use!");
         }
 
+        // Ignore client-supplied roles for public registration; force DONOR role
         User user = new User(
                 signUpRequest.getName(),
                 signUpRequest.getEmail(),
                 signUpRequest.getPhone(),
                 encoder.encode(signUpRequest.getPassword()),
-                signUpRequest.getRole() != null ? signUpRequest.getRole() : User.Role.DONOR
+                User.Role.DONOR
         );
 
         return userRepository.save(user);

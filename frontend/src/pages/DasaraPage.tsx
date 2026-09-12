@@ -6,10 +6,23 @@ import { ExpenseChart } from '../components/transparency/ExpenseChart';
 import { CollectionOverviewCard } from '../components/festival/CollectionOverviewCard';
 import { Festival } from '../types';
 
+import api from '../services/api';
+
 export const DasaraPage: React.FC = () => {
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showCashModal, setShowCashModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'TRANSPARENCY' | 'PROGRAMS' | 'GALLERY'>('OVERVIEW');
+  const [categoryBreakdown, setCategoryBreakdown] = useState<Record<string, number>>({});
+
+  React.useEffect(() => {
+    api.get('/transparency/festival/2/summary')
+      .then((res) => {
+        if (res.data && res.data.categoryBreakdown) {
+          setCategoryBreakdown(res.data.categoryBreakdown);
+        }
+      })
+      .catch((err) => console.error('Failed to load Dasara transparency summary:', err));
+  }, []);
 
   const dasaraFestival: Festival = {
     id: 2,
@@ -162,7 +175,7 @@ export const DasaraPage: React.FC = () => {
 
         {activeTab === 'TRANSPARENCY' && (
           <div className="space-y-8">
-            <ExpenseChart categoryData={{ LIGHTING: 850000, STAGE: 450000, PRASADAM: 320000, DECORATION: 280000 }} />
+            <ExpenseChart categoryData={categoryBreakdown} />
           </div>
         )}
 

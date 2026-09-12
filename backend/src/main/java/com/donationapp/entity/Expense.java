@@ -13,14 +13,20 @@ public class Expense {
 
     public enum ExpenseCategory {
         DECORATION,
+        PRIEST,
+        FLOWERS,
+        PUJA_MATERIALS,
+        PRASADAM,
         LIGHTING,
         SOUND,
-        FOOD,
-        PRASADAM,
-        STAGE,
-        POLICE_PERMISSION,
         GENERATOR,
-        MISCELLANEOUS
+        POLICE_PERMISSION,
+        CULTURAL_PROGRAM,
+        TRANSPORT,
+        FOOD,
+        STAGE,
+        MISCELLANEOUS,
+        OTHER
     }
 
     @Id
@@ -50,11 +56,21 @@ public class Expense {
 
     private String remarks;
 
+    private String verificationStatus = "VERIFIED";
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
+
     public Expense() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -88,6 +104,12 @@ public class Expense {
     public String getRemarks() { return remarks; }
     public void setRemarks(String remarks) { this.remarks = remarks; }
 
+    public String getVerificationStatus() { return verificationStatus; }
+    public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

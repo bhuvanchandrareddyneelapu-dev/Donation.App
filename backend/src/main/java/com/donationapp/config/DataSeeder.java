@@ -84,6 +84,7 @@ public class DataSeeder implements CommandLineRunner {
 
         try {
             ensureSeedUserPassword("superadmin@donation.app", "admin123", "Vikramaditya Sharma", "+91 9876543210", User.Role.SUPER_ADMIN);
+            ensureSeedUserPassword("admin@donation.app", "admin123", "Org Admin", "+91 9876543215", User.Role.ADMIN);
             ensureSeedUserPassword("festivaladmin@donation.app", "admin123", "Rajesh Kulkarni", "+91 9876543211", User.Role.FESTIVAL_ADMIN);
             ensureSeedUserPassword("treasurer@donation.app", "treasurer123", "Sunil Deshmukh", "+91 9876543212", User.Role.TREASURER);
             ensureSeedUserPassword("volunteer@donation.app", "volunteer123", "Aarav Patel", "+91 9876543213", User.Role.VOLUNTEER);
@@ -147,77 +148,6 @@ public class DataSeeder implements CommandLineRunner {
             Volunteer v1 = new Volunteer(volunteerUser, ganesh, "Gate 2 - VIP & General Queue", "VOL-BADGE-8841");
             v1.setDailyTarget(new BigDecimal("100000.00"));
             volunteerRepository.save(v1);
-
-            // 5. Seed Online & Cash Donations
-            Donation d1 = new Donation();
-            d1.setFestival(ganesh);
-            d1.setDonor(donorUser);
-            d1.setDonorName("Priya Sundaram");
-            d1.setDonorPhone("+91 9876543214");
-            d1.setDonorAddress("Jayanagar 4th Block, Bengaluru");
-            d1.setAmount(new BigDecimal("25000.00"));
-            d1.setPurpose(ganesh.getFestivalType());
-            d1.setPaymentType(Donation.PaymentType.ONLINE);
-            d1.setPaymentStatus(Donation.PaymentStatus.COMPLETED);
-            d1.setTransactionId("PAY_RAZORPAY_882910");
-            donationRepository.save(d1);
-
-            Receipt r1 = new Receipt(d1, "REC-2026-1001", "HASH_QR_99812401");
-            receiptRepository.save(r1);
-
-            Donation d2 = new Donation();
-            d2.setFestival(ganesh);
-            d2.setDonorName("Ramesh Chandran & Family");
-            d2.setDonorPhone("+91 9443218765");
-            d2.setDonorAddress("Dadar West, Mumbai");
-            d2.setAmount(new BigDecimal("11000.00"));
-            d2.setPurpose(ganesh.getFestivalType());
-            d2.setPaymentType(Donation.PaymentType.CASH);
-            d2.setPaymentStatus(Donation.PaymentStatus.VERIFIED);
-            d2.setTransactionId("CASH_VOL_44910");
-            d2.setRecordedByVolunteer(volunteerUser);
-            donationRepository.save(d2);
-
-            Receipt r2 = new Receipt(d2, "REC-CASH-2026-1002", "HASH_QR_CASH_1002");
-            receiptRepository.save(r2);
-
-            CashDonationLog log2 = new CashDonationLog();
-            log2.setDonation(d2);
-            log2.setVolunteer(volunteerUser);
-            log2.setVerifiedByTreasurer(treasurer);
-            log2.setStatus(Donation.PaymentStatus.VERIFIED);
-            log2.setDepositReference("HDFC_DEP_991823");
-            log2.setVerificationDate(LocalDateTime.now().minusHours(4));
-            cashDonationLogRepository.save(log2);
-
-            // 6. Seed Expenses for Transparency Module
-            Expense e1 = new Expense();
-            e1.setFestival(ganesh);
-            e1.setCategory(Expense.ExpenseCategory.DECORATION);
-            e1.setTitle("Eco-friendly Floral Pandal & Theme Decor");
-            e1.setAmount(new BigDecimal("450000.00"));
-            e1.setVendorName("Maharashtrian Floral Designers & Decorators");
-            e1.setPaidBy("Treasurer - Sunil Deshmukh");
-            e1.setApprovedBy("Festival Admin - Rajesh Kulkarni");
-            e1.setPaymentDate(LocalDate.now().minusDays(3));
-            expenseRepository.save(e1);
-
-            ExpenseProof ep1 = new ExpenseProof(e1, "INVOICE", "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600", "Pandal_Floral_Invoice_450k.pdf");
-            expenseProofRepository.save(ep1);
-
-            Expense e2 = new Expense();
-            e2.setFestival(ganesh);
-            e2.setCategory(Expense.ExpenseCategory.PRASADAM);
-            e2.setTitle("Daily 24x7 Mahaprasadam & Modak Kitchen");
-            e2.setAmount(new BigDecimal("680000.00"));
-            e2.setVendorName("Shree Annapurna Catering Services");
-            e2.setPaidBy("Treasurer - Sunil Deshmukh");
-            e2.setApprovedBy("Festival Admin - Rajesh Kulkarni");
-            e2.setPaymentDate(LocalDate.now().minusDays(1));
-            expenseRepository.save(e2);
-
-            ExpenseProof ep2 = new ExpenseProof(e2, "BILL", "https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=600", "Annapurna_Catering_Bill.jpg");
-            expenseProofRepository.save(ep2);
 
             // 7. Seed Schedules
             scheduleRepository.save(new FestivalSchedule(ganesh, "Grand Arrival & Prana Pratishtha Puja", LocalDateTime.of(2026, 9, 14, 6, 0), "Main Pandal Stage", "Vedic chantings by 21 priests"));

@@ -110,6 +110,13 @@
 			<version>20240303</version>
 		</dependency>
 
+		<!-- BouncyCastle for Web Push VAPID KeyPair & Encryption -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.78.1</version>
+		</dependency>
+
 		<!-- Test Starter -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

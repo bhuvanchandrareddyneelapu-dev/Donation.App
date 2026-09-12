@@ -16,7 +16,9 @@ public class ExpenseResponse {
     private String approvedBy;
     private LocalDate paymentDate;
     private String remarks;
+    private String verificationStatus;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public ExpenseResponse() {}
 
@@ -34,7 +36,9 @@ public class ExpenseResponse {
             this.approvedBy = expense.getApprovedBy();
             this.paymentDate = expense.getPaymentDate();
             this.remarks = expense.getRemarks();
+            this.verificationStatus = expense.getVerificationStatus();
             this.createdAt = expense.getCreatedAt();
+            this.updatedAt = expense.getUpdatedAt();
         }
     }
 
@@ -68,6 +72,12 @@ public class ExpenseResponse {
     public String getRemarks() { return remarks; }
     public void setRemarks(String remarks) { this.remarks = remarks; }
 
+    public String getVerificationStatus() { return verificationStatus; }
+    public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

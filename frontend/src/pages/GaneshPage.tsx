@@ -7,10 +7,23 @@ import { CollectionOverviewCard } from '../components/festival/CollectionOvervie
 import { SuperAdminControlPanel } from '../components/admin/SuperAdminControlPanel';
 import { Festival } from '../types';
 
+import api from '../services/api';
+
 export const GaneshPage: React.FC = () => {
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showCashModal, setShowCashModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'TRANSPARENCY' | 'GALLERY' | 'VOLUNTEERS' | 'COMMUNITY'>('OVERVIEW');
+  const [categoryBreakdown, setCategoryBreakdown] = useState<Record<string, number>>({});
+
+  React.useEffect(() => {
+    api.get('/transparency/festival/1/summary')
+      .then((res) => {
+        if (res.data && res.data.categoryBreakdown) {
+          setCategoryBreakdown(res.data.categoryBreakdown);
+        }
+      })
+      .catch((err) => console.error('Failed to load Ganesh transparency summary:', err));
+  }, []);
 
   const ganeshFestival: Festival = {
     id: 1,
@@ -188,7 +201,7 @@ export const GaneshPage: React.FC = () => {
 
         {activeTab === 'TRANSPARENCY' && (
           <div className="space-y-8">
-            <ExpenseChart categoryData={{ DECORATION: 450000, PRASADAM: 680000, LIGHTING: 220000, GENERATOR: 85000, STAGE: 310000 }} />
+            <ExpenseChart categoryData={categoryBreakdown} />
           </div>
         )}
 

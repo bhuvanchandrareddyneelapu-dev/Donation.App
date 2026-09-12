@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/v1/community")
@@ -30,6 +32,7 @@ public class CommunityController {
     }
 
     @PostMapping("/posts")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'FESTIVAL_ADMIN')")
     public ResponseEntity<CommunityPost> createPost(@RequestBody CommunityPost post) {
         return ResponseEntity.ok(communityService.createPost(post));
     }

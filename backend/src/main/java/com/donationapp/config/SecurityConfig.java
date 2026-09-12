@@ -50,6 +50,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/community/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/receipts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/analytics/**").permitAll()
+                .requestMatchers("/api/v1/notifications/**").permitAll()
+                .requestMatchers("/api/v1/admin/auth/forgot-password/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/v1/admin/**").authenticated()
                 .anyRequest().authenticated()

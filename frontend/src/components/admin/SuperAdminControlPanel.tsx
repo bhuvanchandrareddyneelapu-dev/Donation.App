@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, Edit3, RotateCcw, ShieldAlert, Download, FileText, X, Check, Eye, EyeOff, RefreshCw, Sparkles, Building, Calendar, MapPin
+  Plus, Edit3, RotateCcw, ShieldAlert, Download, FileText, X, Check, Eye, EyeOff, RefreshCw, Sparkles, Building, Calendar, MapPin, Lock
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { SuperAdminSecurityModal } from './SuperAdminSecurityModal';
 import { 
   recordManualDonation, 
   updateDonationRecord, 
@@ -31,6 +32,7 @@ export const SuperAdminControlPanel: React.FC<SuperAdminControlPanelProps> = ({
   const isSuperAdmin = user && (user.role === 'SUPER_ADMIN' || user.role === 'HEAD' || user.role === 'FESTIVAL_ADMIN');
 
   const [activeModal, setActiveModal] = useState<'NONE' | 'ADD_DONATION' | 'DONATION_HISTORY' | 'EDIT_DONATION' | 'REVERSE_DONATION' | 'FESTIVAL_DETAILS' | 'AUDIT_LOGS'>('NONE');
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -312,7 +314,7 @@ export const SuperAdminControlPanel: React.FC<SuperAdminControlPanelProps> = ({
       </div>
 
       {/* Action Buttons Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <button
           type="button"
           onClick={() => setActiveModal('ADD_DONATION')}
@@ -388,6 +390,27 @@ export const SuperAdminControlPanel: React.FC<SuperAdminControlPanelProps> = ({
             <div className="text-xs text-slate-400">Complete audit log of all modifications</div>
           </div>
         </button>
+
+        {user?.role === 'SUPER_ADMIN' && (
+          <button
+            type="button"
+            onClick={() => setIsSecurityModalOpen(true)}
+            className="p-5 rounded-2xl bg-gradient-to-br from-indigo-600/30 via-slate-900 to-slate-900 border border-indigo-500/40 hover:border-indigo-400 transition text-left space-y-2 group shadow-xl active:scale-95"
+          >
+            <div className="flex justify-between items-center">
+              <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-300 font-bold">
+                <Lock className="w-6 h-6" />
+              </div>
+              <Sparkles className="w-4 h-4 text-indigo-400 opacity-60 group-hover:opacity-100 transition" />
+            </div>
+            <div>
+              <div className="text-sm font-black text-white group-hover:text-indigo-300 transition">
+                Security & Credentials
+              </div>
+              <div className="text-xs text-slate-400">Change Password & Phone (OTP)</div>
+            </div>
+          </button>
+        )}
       </div>
 
       {/* ========================================================================= */}
@@ -1026,6 +1049,11 @@ export const SuperAdminControlPanel: React.FC<SuperAdminControlPanelProps> = ({
           </div>
         </div>
       )}
+
+      <SuperAdminSecurityModal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
+      />
 
     </div>
   );

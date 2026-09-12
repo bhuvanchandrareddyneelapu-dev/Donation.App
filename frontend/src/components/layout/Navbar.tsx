@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShieldCheck, Users, Search, UserCheck, LogOut, Menu, X, Lock, Camera, Share2, Award } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { NotificationBell } from '../festival/NotificationBell';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -76,8 +77,10 @@ export const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* Committee Organizer Portal Links & WhatsApp Share */}
+          {/* Committee Organizer Portal Links & WhatsApp Share & Notification Bell */}
           <div className="hidden md:flex items-center space-x-3">
+            <NotificationBell />
+
             <button
               onClick={handleShareWhatsApp}
               className="flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-extrabold bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600/30 transition shadow-sm"
@@ -120,6 +123,7 @@ export const Navbar: React.FC = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-2">
+            <NotificationBell />
             <button
               onClick={handleShareWhatsApp}
               className="p-2 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30"

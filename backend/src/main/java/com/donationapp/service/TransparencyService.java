@@ -72,14 +72,12 @@ public class TransparencyService {
         BigDecimal totalCollection = donationRepository.sumTotalCollectionByFestivalId(festivalId);
         if (totalCollection == null) totalCollection = BigDecimal.ZERO;
 
-        BigDecimal targetAmount = festival != null && festival.getTargetAmount() != null ? festival.getTargetAmount() : BigDecimal.ZERO;
-        BigDecimal remainingTarget = targetAmount.subtract(totalCollection);
         BigDecimal netBalance = totalCollection.subtract(totalExpenses);
 
         List<Expense> expenses = expenseRepository.findByFestivalId(festivalId);
 
-        // Expense category breakdown for charts
-        Map<String, BigDecimal> categoryBreakdown = new HashMap<>();
+        // Expense category breakdown for charts - dynamically computed from real records
+        Map<String, BigDecimal> categoryBreakdown = new LinkedHashMap<>();
         List<ExpenseResponse> expenseList = new ArrayList<>();
         for (Expense e : expenses) {
             categoryBreakdown.put(
@@ -89,14 +87,13 @@ public class TransparencyService {
             expenseList.add(new ExpenseResponse(e));
         }
 
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response = new LinkedHashMap<>();
         response.put("festivalId", festival != null ? festival.getId() : festivalId);
         response.put("festivalName", festival != null ? festival.getName() : "");
-        response.put("targetAmount", targetAmount);
         response.put("totalCollection", totalCollection);
         response.put("totalExpenses", totalExpenses);
         response.put("netBalance", netBalance);
-        response.put("remainingTarget", remainingTarget.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : remainingTarget);
+        response.put("remainingBalance", netBalance);
         response.put("categoryBreakdown", categoryBreakdown);
         response.put("expenseList", expenseList);
 
